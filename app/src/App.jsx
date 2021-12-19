@@ -17,36 +17,31 @@ import ArtistList from './pages/ArtistList';
 import Artist from './pages/Artist';
 import Cart from './pages/Cart';
 
-const App = () => {
-  const location = useLocation();
-  const history = useHistory();
-
-  return (
-    <>
-      <BrowserRouter>
-        <CssBaseline />
-        <Header />
-        <React.StrictMode>
-          <Switch>
-            <Route exact path="/" component={Main} />
-            <Route path="/artworks/:workId" component={Artwork} />
-            <Route path="/artworks/" component={ArtworksList} />
-            <Route path="/artists/:artistId" component={Artist} />
-            <Route path="/artists/" component={ArtistList} />
-            <Route exact path="/users/profile" component={UserProfile} />
-            <Route path="/cart/shippingAddress/:workId?" component={Cart} />
-            {/* <Route path="/cart/placeOrder/:workId?" component={Cart} />
+const App = () => (
+  <>
+    <BrowserRouter>
+      <CssBaseline />
+      <Header />
+      <React.StrictMode>
+        <Switch>
+          <Route exact path="/" component={Main} />
+          <Route path="/artworks/:workId" component={Artwork} />
+          <Route path="/artworks/" component={ArtworksList} />
+          <Route path="/artists/:artistId" component={Artist} />
+          <Route path="/artists/" component={ArtistList} />
+          <Route exact path="/users/profile" component={UserProfile} />
+          <Route path="/cart/shippingAddress/:workId?" component={Cart} />
+          {/* <Route path="/cart/placeOrder/:workId?" component={Cart} />
             <Route path="/orders/:orderId" component={Cart} />
             <Route exact path="/login" component={EnterForm} />
             <Route exact path="/register" component={RegisterForm} />
             <Route path="/admin-panel/user/:userId/edit" component={UserEdit} />
             <Route exact path="/admin-panel/:route" component={AdminPanel} /> */}
-          </Switch>
-        </React.StrictMode>
-        <Footer />
-      </BrowserRouter>
-    </>
-  );
-};
+        </Switch>
+      </React.StrictMode>
+      <Footer />
+    </BrowserRouter>
+  </>
+);
 
 export default App;

@@ -102,7 +102,7 @@
 //         type: ARTWORK_LIST_FAIL,
 //         payload:
 //           e.response && e.response.data.detail
-//             ? e.response.data.detail
+//             ? e.response.data.details
 //             : e.message,
 //       });
 //     }
@@ -122,7 +122,7 @@
 //       type: ARTWORK_DETAILS_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -191,7 +191,7 @@
 //       type: USER_LOGIN_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -240,7 +240,7 @@
 //         type: USER_REGISTER_FAIL,
 //         payload:
 //           e.response && e.response.data.detail
-//             ? e.response.data.detail
+//             ? e.response.data.details
 //             : e.message,
 //       });
 //     }
@@ -261,7 +261,7 @@
 //       type: ARTIST_DETAILS_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -315,7 +315,7 @@
 //       type: ORDER_CREATE_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -345,7 +345,7 @@
 //       type: ORDER_DETAILS_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -375,7 +375,7 @@
 //       type: MY_ORDERS_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -409,7 +409,7 @@
 //       type: ORDER_PAY_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -440,7 +440,7 @@
 //       type: USER_LIST_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -474,7 +474,7 @@
 //       type: USER_DELETE_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -509,7 +509,7 @@
 //         type: ARTWORK_DELETE_FAIL,
 //         payload:
 //           e.response && e.response.data.detail
-//             ? e.response.data.detail
+//             ? e.response.data.details
 //             : e.message,
 //       });
 //     }
@@ -545,7 +545,7 @@
 //       type: USER_UPDATE_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -585,7 +585,7 @@
 //       type: ARTWORK_UPDATE_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -616,7 +616,7 @@
 //       type: ARTIST_LIST_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -647,7 +647,7 @@
 //       type: ARTWORK_CREATE_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -677,7 +677,7 @@
 //       type: ORDER_LIST_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }
@@ -707,7 +707,7 @@
 //       type: ORDER_DELIVER_FAIL,
 //       payload:
 //         e.response && e.response.data.detail
-//           ? e.response.data.detail
+//           ? e.response.data.details
 //           : e.message,
 //     });
 //   }

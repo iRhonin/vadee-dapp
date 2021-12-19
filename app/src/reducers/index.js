@@ -17,6 +17,7 @@ import {
   userUpdateReducer,
   favArtworkReducer,
   favArtworkListReducer,
+  artistArtworksReducer,
 } from './userReducer';
 import {
   orderCreateReducer,
@@ -30,7 +31,16 @@ import headerReducer from './headerReducer';
 import { artistByIdReducer, artistListReducer } from './artistReducer.js';
 import { articleListReducer } from './articleReducer.js';
 import { filterReducer } from './filterReducer.js';
-import { walletConnectionReducer } from './blockChainReducer.js';
+import {
+  storeDeployReducer,
+  voucherReducer,
+  walletConnectionReducer,
+} from './lazyFactoryReducer.js';
+import {
+  MarketBalanceReducer,
+  marketPlaceDeployReducer,
+  marketPlaceReducer,
+} from './marketPlaceReducer.js';
 
 export default combineReducers({
   headerStatus: headerReducer,
@@ -43,14 +53,15 @@ export default combineReducers({
   userDetails: userDetailsReducer,
   artistList: artistListReducer,
   theArtist: artistByIdReducer,
-  artworkUpdate: artworkUpdateReducer, // update artwork from admin
+  artworkUpdate: artworkUpdateReducer,
   userUpdateProfile: userUpdateProfileReducer,
   favArtwork: favArtworkReducer,
   favArtworkList: favArtworkListReducer,
-  userList: usersReducer,
+  // userList: usersReducer,
   userDeleteList: userDeleteReducer,
   artworkCreate: artworkCreateReducer,
   userUpdate: userUpdateReducer, // update user from admin
+  myWorks: artistArtworksReducer,
   orderCreate: orderCreateReducer,
   orderDetails: orderDetailsReducer,
   ordersList: orderListReducer,
@@ -61,4 +72,9 @@ export default combineReducers({
   filterOrigin: filterReducer,
   categoryList: categoriesReducer,
   walletConnection: walletConnectionReducer,
+  myVoucher: voucherReducer,
+  marketPlaceDeployment: marketPlaceDeployReducer,
+  theMarketPlace: marketPlaceReducer,
+  marketPlaceBalance: MarketBalanceReducer,
+  myStore: storeDeployReducer,
 });

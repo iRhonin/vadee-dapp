@@ -70,9 +70,23 @@ function ProfileForm() {
   };
 
   useEffect(() => {
-    if (!successUserDetails) {
-      history.push('/users/profile/?redirect=/login');
-    } else if (!successUserDetails || successUpdate) {
+    dispatch(fetchUserDetails());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const cartItemFromStorage = localStorage.getItem('cartItems')
+      ? JSON.parse(localStorage.getItem('cartItems'))
+      : [];
+
+    if (!successUserDetails && !cartItemFromStorage) {
+      history.push(`/artworks`);
+    } else if (cartItemFromStorage[0]) {
+      history.push(`/artworks/${cartItemFromStorage[0].artworkId}`);
+    }
+  }, [userInfo, history, successUserDetails]);
+
+  useEffect(() => {
+    if (!successUserDetails || successUpdate) {
       dispatch({ type: USER_UPDATE_PROFILE_RESET });
       dispatch(fetchUserDetails());
     } else {
@@ -241,7 +255,7 @@ function ProfileForm() {
         </Paper>
       </form>
       {errorUserDetails && (
-        <Message severity="errorUserDetails">{errorUserDetails}</Message>
+        <Message severity="error">{errorUserDetails}</Message>
       )}
       {loadingUserDetails && <Loader />}
     </div>

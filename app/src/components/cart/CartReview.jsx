@@ -1,7 +1,4 @@
-/* eslint-disable react/jsx-no-duplicate-props */
-/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable react/prop-types */
-/* eslint-disable no-nested-ternary */
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Paper, Grid, Button, Typography } from '@mui/material';
@@ -9,7 +6,7 @@ import { useHistory } from 'react-router-dom';
 import { fetchUserDetails } from '../../actions/userAction';
 import Message from '../Message';
 import Loader from '../Loader';
-import { connectWallet } from '../../actions/blockChainAction';
+import { connectWallet } from '../../actions/lazyFactoryAction';
 
 function CartReview({ setTabValue, formValues }) {
   const dispatch = useDispatch();
@@ -22,6 +19,13 @@ function CartReview({ setTabValue, formValues }) {
     success: successUserDetails,
   } = userDetails;
 
+  const walletConnection = useSelector((state) => state.walletConnection);
+  const {
+    wallet,
+    success: successWallet,
+    error: errorWallet,
+  } = walletConnection;
+
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
 
@@ -31,10 +35,31 @@ function CartReview({ setTabValue, formValues }) {
     }
   }, [userInfo, history, successUserDetails]);
 
+  useEffect(() => {
+    dispatch(connectWallet());
+    window.ethereum.on('accountsChanged', function (accounts) {
+      dispatch(connectWallet());
+    });
+  }, [dispatch]);
+
+  // useEffect(() => {
+  //   if (window.ethereum) {
+  //     window.ethereum.on('accountsChanged', (accounts) => {
+  //       if (accounts.length > 0) {
+  //         // [walletAddress] = accounts;
+  //         dispatch(connectWallet());
+  //       }
+  //     });
+  //   }
+  // }, [dispatch]);
+
   // edit
   const onEdit = () => {
     setTabValue('1');
   };
+
+  const userAccountStart = wallet ? wallet.slice(0, 6) : null;
+  const userAccountEnd = wallet ? wallet.slice(-5) : null;
 
   return (
     <div>
@@ -93,19 +118,36 @@ function CartReview({ setTabValue, formValues }) {
             >
               Edit
             </Button>
-            <Button
-              variant="custom"
-              color="primary"
-              sx={{ width: '100%' }}
-              onClick={() => dispatch(connectWallet())}
-            >
-              Connect Wallet
-            </Button>
+            {successWallet ? (
+              <Button
+                variant="custom"
+                color="primary"
+                sx={{ width: '100%' }}
+                onClick={() => dispatch(connectWallet())}
+              >
+                Purchase by
+                <Typography
+                  sx={{ fontWeight: 'bolder', paddingRight: 1, paddingLeft: 1 }}
+                  variant="body2"
+                >
+                  {userAccountStart}...{userAccountEnd}
+                </Typography>
+              </Button>
+            ) : (
+              <Button
+                variant="custom"
+                color="primary"
+                sx={{ width: '100%' }}
+                onClick={() => dispatch(connectWallet())}
+              >
+                Connect Wallet
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Paper>
-      {errorUserDetails && (
-        <Message severity="errorUserDetails">{errorUserDetails}</Message>
+      {(errorUserDetails || errorWallet) && (
+        <Message severity="error">{errorUserDetails || errorWallet}</Message>
       )}
       {loadingUserDetails && <Loader />}
     </div>

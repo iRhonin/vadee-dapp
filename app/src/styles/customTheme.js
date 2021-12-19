@@ -148,6 +148,16 @@ const customTheme = createTheme({
         },
       },
     },
+    MuiImageListItemBar: {
+      styleOverrides: {
+        titleWrapBelow: {
+          display: 'none',
+        },
+        actionIconActionPosRight: {
+          width: '100%',
+        },
+      },
+    },
   },
 });
 

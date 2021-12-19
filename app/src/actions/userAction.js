@@ -21,7 +21,58 @@ import {
   USER_FAVORITE_ARTWORK_LIST_REQUEST,
   USER_FAVORITE_ARTWORK_LIST_FAIL,
   USER_FAVORITE_ARTWORK_LIST_SUCCESS,
+  USER_ARTIST_WORKS_REQUEST,
+  USER_ARTIST_WORKS_SUCCESS,
+  USER_ARTIST_WORKS_FAIL,
+  USER_STORE_ADDRESS_REQUEST,
+  USER_STORE_ADDRESS_SUCCESS,
+  USER_STORE_ADDRESS_FAIL,
 } from '../constants/userConstants';
+
+export const updateUserStore = (storeAddress) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: USER_STORE_ADDRESS_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    // eslint-disable-next-line no-undef
+    const formData = new FormData();
+    formData.set('storeAddress', storeAddress);
+
+    const { data } = await artworksBase.put(
+      `/users/store/update/`,
+      formData,
+      config
+    );
+
+    dispatch({
+      type: USER_STORE_ADDRESS_SUCCESS,
+      payload: data,
+    });
+    // login the user with new data and update local storage
+    dispatch({
+      type: USER_LOGIN_SUCCESS,
+      payload: data,
+    });
+  } catch (e) {
+    // check for generic and custom message to return using ternary statement
+    dispatch({
+      type: USER_STORE_ADDRESS_FAIL,
+      payload:
+        e.response && e.response.data.detail
+          ? e.response.data.detail
+          : e.message,
+    });
+  }
+};
 
 export const login = (username, password) => async (dispatch) => {
   try {
@@ -50,7 +101,7 @@ export const login = (username, password) => async (dispatch) => {
       type: USER_LOGIN_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -103,7 +154,7 @@ export const register =
         type: USER_REGISTER_FAIL,
         payload:
           e.response && e.response.data.detail
-            ? e.response.data.detail
+            ? e.response.data.details
             : e.message,
       });
     }
@@ -135,7 +186,7 @@ export const fetchUserDetails = () => async (dispatch, getState) => {
       type: USER_DETAILS_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -191,7 +242,7 @@ export const updateUserProfile = (user) => async (dispatch, getState) => {
       type: USER_UPDATE_PROFILE_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -227,7 +278,7 @@ export const favArtwork = (artworkId) => async (dispatch, getState) => {
       type: USER_FAVORITE_ARTWORK_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -262,7 +313,43 @@ export const fetchFavArtworkList = () => async (dispatch, getState) => {
       type: USER_FAVORITE_ARTWORK_LIST_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
+          : e.message,
+    });
+  }
+};
+
+export const fetchArtistWorks = () => async (dispatch, getState) => {
+  try {
+    dispatch({ type: USER_ARTIST_WORKS_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const config = {
+      headers: {
+        'Content-type': 'application/json',
+        Authorization: `Bearer ${userInfo.token}`,
+      },
+    };
+
+    const { data } = await artworksBase.get(
+      `users/profile/artworks/mine`,
+      config
+    );
+
+    dispatch({
+      type: USER_ARTIST_WORKS_SUCCESS,
+      payload: data,
+    });
+  } catch (e) {
+    console.log(e.response);
+    // check for generic and custom message to return using ternary statement
+    dispatch({
+      type: USER_ARTIST_WORKS_FAIL,
+      payload:
+        e.response && e.response.data.details
+          ? e.response.data.details
           : e.message,
     });
   }

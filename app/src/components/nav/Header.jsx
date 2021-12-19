@@ -11,7 +11,9 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import { Link, useHistory, useLocation } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import UserMenu from './UserMenu';
+import { fetchMarketPlace } from '../../actions/marketPlaceAction';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -53,12 +55,16 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 const Header = () => {
   const history = useHistory();
+  const dispatch = useDispatch();
   const location = useLocation();
 
   const [current, setCurrent] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const [isHeader, setIsHeader] = useState(true);
+
+  const theMarketPlace = useSelector((state) => state.theMarketPlace);
+  const { marketPlace } = theMarketPlace;
 
   useEffect(() => {
     if (
@@ -70,6 +76,10 @@ const Header = () => {
       setIsHeader(true);
     }
   }, [location, history]);
+
+  useEffect(() => {
+    dispatch(fetchMarketPlace());
+  }, [dispatch]);
 
   const handleNavigation = (value) => {
     if (value === 'artists') {
@@ -90,7 +100,7 @@ const Header = () => {
 
   return (
     <Container maxWidth="xl" sx={{ marginTop: 5, marginBottom: 5 }}>
-      {isHeader && (
+      {isHeader && marketPlace && marketPlace.contract && (
         <>
           <AppBar position="static" elevation={0}>
             <Toolbar>

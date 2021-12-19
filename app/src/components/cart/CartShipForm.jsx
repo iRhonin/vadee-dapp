@@ -46,6 +46,9 @@ function CartShipForm({ setTabValue, formValues, setFormValues }) {
   const userUpdateProfile = useSelector((state) => state.userUpdateProfile);
   const { success: successUpdate } = userUpdateProfile;
 
+  const theCart = useSelector((state) => state.theCart);
+  const { success: successCart } = theCart;
+
   useEffect(() => {
     if (successUpdate && formValues) {
       dispatch({ type: USER_DETAILS_RESET });
@@ -55,10 +58,18 @@ function CartShipForm({ setTabValue, formValues, setFormValues }) {
   }, [successUpdate]);
 
   useEffect(() => {
-    if (!successUserDetails) {
-      history.push('/login');
+    const cartItemFromStorage = localStorage.getItem('cartItems')
+      ? JSON.parse(localStorage.getItem('cartItems'))
+      : [];
+
+    if (!successUserDetails && !cartItemFromStorage) {
+      history.push(`/artworks`);
     }
-  }, [userInfo, history, successUserDetails]);
+  }, [userInfo, history, successCart, successUserDetails]);
+
+  useEffect(() => {
+    dispatch(fetchUserDetails());
+  }, [dispatch]);
 
   const validationSchema = Yup.object().shape({
     firstName: Yup.string().required('Please enter your first name'),
@@ -94,7 +105,7 @@ function CartShipForm({ setTabValue, formValues, setFormValues }) {
   });
 
   const onSubmit = async (data) => {
-    console.log(JSON.stringify(data, null, 2));
+    // console.log(JSON.stringify(data, null, 2));
     const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     await sleep(300);
     dispatch(
@@ -277,7 +288,7 @@ function CartShipForm({ setTabValue, formValues, setFormValues }) {
       )}
 
       {errorUserDetails && (
-        <Message severity="errorUserDetails">{errorUserDetails}</Message>
+        <Message severity="error">{errorUserDetails}</Message>
       )}
       {loadingUserDetails && <Loader />}
     </div>

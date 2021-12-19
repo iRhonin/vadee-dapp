@@ -41,7 +41,7 @@ export const addToCart = (workId) => async (dispatch, getState) => {
       type: CART_ADD_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }

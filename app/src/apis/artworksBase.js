@@ -17,3 +17,7 @@ import apiUrl from '../env';
 export default axios.create({
   baseURL: apiUrl,
 });
+
+export const gecko = axios.create({
+  baseURL: 'https://api.coingecko.com/api/v3',
+});

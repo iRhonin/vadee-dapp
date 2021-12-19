@@ -25,7 +25,6 @@ import { ARTIST_LIST_RESET } from '../constants/artistConstants';
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
-    // marginTop: 100,
     minHeight: '100vh',
     marginBottom: 100,
   },
@@ -36,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: '16px',
     paddingRight: '16px',
     paddingTop: '16px',
+    paddingBottom: '16px',
     marginLeft: theme.spacing(2),
   },
 }));
@@ -260,23 +260,25 @@ function Artwork() {
                     $ {artwork.price.toLocaleString()}
                   </span>
                 </Typography>
-                <LoadingButton
-                  loading={isLoading}
-                  onClick={
-                    successUserDetails
-                      ? (e) => onAddToCart(e)
-                      : () =>
-                          history.push(`/artworks/${workId}?redirect=/login`)
-                  }
-                  variant={!successUserDetails ? 'outlined' : 'contained'}
-                  type="submit"
-                  fullWidth
-                  disabled={isDisabled}
-                >
-                  {successUserDetails
-                    ? 'Purchase Artwork'
-                    : 'Login To Purchase'}
-                </LoadingButton>
+                {artwork.voucher.signature && (
+                  <LoadingButton
+                    loading={isLoading}
+                    onClick={
+                      successUserDetails
+                        ? (e) => onAddToCart(e)
+                        : () =>
+                            history.push(`/artworks/${workId}?redirect=/login`)
+                    }
+                    variant={!successUserDetails ? 'outlined' : 'contained'}
+                    type="submit"
+                    fullWidth
+                    disabled={isDisabled}
+                  >
+                    {successUserDetails
+                      ? 'Purchase Artwork'
+                      : 'Login To Purchase'}
+                  </LoadingButton>
+                )}
 
                 <Link to="/">
                   <Typography variant="subtitle2">{artwork.name}</Typography>

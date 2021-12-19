@@ -13,7 +13,6 @@ import PropTypes from 'prop-types';
 import { favArtwork } from '../actions/userAction';
 
 export default function ArtCard({ data }) {
-  console.log(data);
   const dispatch = useDispatch();
 
   const [isFav, setIsFav] = useState(false);

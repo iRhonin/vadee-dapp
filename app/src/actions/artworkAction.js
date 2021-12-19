@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import artworksBase from '../apis/artworksBase';
 import {
   ARTWORK_LIST_REQUEST,
@@ -9,6 +10,9 @@ import {
   CATEGORY_LIST_REQUEST,
   CATEGORY_LIST_SUCCESS,
   CATEGORY_LIST_FAIL,
+  ARTWORK_UPDATE_REQUEST,
+  ARTWORK_UPDATE_FAIL,
+  ARTWORK_UPDATE_SUCCESS,
 } from '../constants/artworkConstants';
 
 export const fetchAllArtWorks =
@@ -27,7 +31,7 @@ export const fetchAllArtWorks =
         type: ARTWORK_LIST_FAIL,
         payload:
           e.response && e.response.data.detail
-            ? e.response.data.detail
+            ? e.response.data.details
             : e.message,
       });
     }
@@ -48,7 +52,7 @@ export const fetchOneArtWork = (workId) => async (dispatch) => {
       type: ARTWORK_DETAILS_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -68,8 +72,77 @@ export const fetchCategories = () => async (dispatch) => {
       type: CATEGORY_LIST_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
 };
+
+export const updateArtwork =
+  (artwork, storeAddress, sellerAddress, buyerAddress, voucher, action) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch({ type: ARTWORK_UPDATE_REQUEST });
+
+      const {
+        userLogin: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          'content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+      // eslint-disable-next-line no-undef
+      const formData = new FormData();
+
+      // Option Sign: update product when sign the product
+      if (action === 'Signing') {
+        console.log(artwork._id);
+
+        const sellingPrice = ethers.utils.parseUnits(
+          artwork.price.toString(),
+          'ether'
+        );
+        formData.append('signature', voucher.signature);
+        formData.append('artworkId', voucher.artworkId);
+        formData.append('sellingPrice', sellingPrice); // ether to wei
+        formData.append('tokenUri', voucher.tokenUri);
+        formData.append('content', voucher.content);
+        formData.append('sellerAddress', sellerAddress);
+      }
+      // Option Redeem and Mint: update product when mint the product
+      else if (action === 'RedeemAndMint') {
+        formData.append('artworkId', artwork._id);
+        formData.append('sellerAddress', sellerAddress); // flu
+        formData.append('buyerAddress', buyerAddress); // flu
+        formData.append('storeAddress', storeAddress);
+      }
+      // Option Add to market: create a market sell
+      else if (action === 'MarketPlace') {
+        formData.append('artworkId', artwork._id);
+        formData.append('walletAddress', sellerAddress); // seller
+        formData.append('storeAddress', storeAddress);
+      }
+
+      const { data } = await artworksBase.put(
+        `/artworks/update/${artwork._id}/${action}/`,
+        formData,
+        config
+      );
+
+      dispatch({
+        type: ARTWORK_UPDATE_SUCCESS,
+        payload: data,
+      });
+    } catch (e) {
+      dispatch({
+        type: ARTWORK_UPDATE_FAIL,
+        payload:
+          e.response && e.response.data.detail
+            ? e.response.data.detail
+            : e.message,
+      });
+    }
+  };

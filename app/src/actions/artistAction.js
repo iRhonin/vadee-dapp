@@ -30,7 +30,7 @@ export const fetchArtistById = (id) => async (dispatch) => {
       type: ARTIST_BY_ID_FAIL,
       payload:
         e.response && e.response.data.detail
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
     });
   }
@@ -58,7 +58,7 @@ export const fetchArtistList =
         type: ARTIST_LIST_FAIL,
         payload:
           e.response && e.response.data.detail
-            ? e.response.data.detail
+            ? e.response.data.details
             : e.message,
       });
     }

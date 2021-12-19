@@ -7,6 +7,7 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import ProfileForm from '../components/profile/ProfileForm';
 import ProfileFavorite from '../components/profile/ProfileFavorite';
+import ProfileMyWorks from '../components/profile/ProfileMyWorks';
 // import AccountUserOrders from '../components/profile/ProfileOrders';
 
 export default function UserProfile() {
@@ -54,8 +55,9 @@ export default function UserProfile() {
                   aria-label="lab API tabs example"
                 >
                   <Tab label="My Profile" value="1" />
-                  <Tab label="My orders" disabled value="2" />
-                  <Tab label="Saves & Follows" value="3" />
+                  <Tab label="My Artworks" value="2" />
+                  <Tab label="My orders" disabled value="3" />
+                  <Tab label="Saves & Follows" value="4" />
                 </TabList>
               </Box>
 
@@ -63,8 +65,11 @@ export default function UserProfile() {
                 <TabPanel value="1">
                   <ProfileForm />
                 </TabPanel>
-                <TabPanel value="2">{/* <AccountUserOrders /> */}</TabPanel>
-                <TabPanel value="3">
+                <TabPanel value="2">
+                  <ProfileMyWorks />
+                </TabPanel>
+                <TabPanel value="3">{/* <AccountUserOrders /> */}</TabPanel>
+                <TabPanel value="4">
                   <ProfileFavorite />
                 </TabPanel>
               </Box>

@@ -23,7 +23,17 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: "0.8.4",
+  defaultNetwork: "rinkeby", // e.g: prints rinkeby metamask account / hh accounts
   networks: {
+    rinkeby: {
+      url: process.env.ALCHEMY_RINKEBY_URL,
+      accounts: [`0x${process.env.PRIVATE_KEY}`],
+    },
+    hardhat:{
+      forking:{
+        url: process.env.ALCHEMY_MAINNET_URL
+      }
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || "",
       accounts:

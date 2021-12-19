@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 // We require the Hardhat Runtime Environment explicitly here. This is optional
 // but useful for running the script in a standalone fashion through `node <script>`.
 //
@@ -13,13 +15,35 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
+ 
   // We get the contract to deploy
-  const Greeter = await hre.ethers.getContractFactory("Greeter");
-  const greeter = await Greeter.deploy("Hello, Hardhat!");
+  const MarketPlace = await hre.ethers.getContractFactory("MarketPlace");
+  const marketPlace = await MarketPlace.deploy();
+  await marketPlace.deployed();
+  console.log("marketPlace deployed to:", marketPlace.address);
 
-  await greeter.deployed();
+  const Factory = await hre.ethers.getContractFactory("LazyFactory");
+  const factory = await Factory.deploy(
+    marketPlace.address,
+    'Vadee',
+    'storeName',
+    '0x720472c8ce72c2A2D711333e064ABD3E6BbEAdd3'
+  );
+  await factory.deployed();
+  console.log("Factory deployed to:", factory.address);
 
-  console.log("Greeter deployed to:", greeter.address);
+  factoryData = {
+    address: factory.address,
+    abi: JSON.parse(factory.interface.format('json'))
+  };
+
+  marketPlaceData = {
+    address: marketPlace.address,
+    abi: JSON.parse(marketPlace.interface.format('json'))
+  };
+  
+  fs.writeFileSync('app/src/build/contracts/LazyFactory.json',JSON.stringify(factoryData))
+  fs.writeFileSync('app/src/build/contracts/MarketPlace.json',JSON.stringify(marketPlaceData))
 }
 
 // We recommend this pattern to be able to use async/await everywhere

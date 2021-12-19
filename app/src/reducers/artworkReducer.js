@@ -31,7 +31,6 @@ export const artworkReducer = (state = { artwork: {} }, action) => {
   }
 };
 
-// admin panel edit artwork
 export const artworkUpdateReducer = (state = { artwork: {} }, action) => {
   switch (action.type) {
     case ARTWORK_UPDATE_REQUEST:

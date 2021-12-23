@@ -32,11 +32,13 @@ import { artistByIdReducer, artistListReducer } from './artistReducer.js';
 import { articleListReducer } from './articleReducer.js';
 import { filterReducer } from './filterReducer.js';
 import {
+  mintAndRedeemReducer,
   storeDeployReducer,
   voucherReducer,
   walletConnectionReducer,
 } from './lazyFactoryReducer.js';
 import {
+  ethPriceReducer,
   MarketBalanceReducer,
   marketPlaceDeployReducer,
   marketPlaceReducer,
@@ -77,4 +79,6 @@ export default combineReducers({
   theMarketPlace: marketPlaceReducer,
   marketPlaceBalance: MarketBalanceReducer,
   myStore: storeDeployReducer,
+  buyAndMint: mintAndRedeemReducer,
+  ethPrice: ethPriceReducer,
 });

@@ -77,18 +77,13 @@ export const deployMarketPlace = () => async (dispatch, getState) => {
   }
 };
 
-export const fetchMarketPlace = () => async (dispatch, getState) => {
+export const fetchMarketPlace = () => async (dispatch) => {
   try {
     dispatch({ type: MARKET_PLACE_REQUEST });
-
-    const {
-      userLogin: { userInfo },
-    } = getState();
 
     const config = {
       headers: {
         'content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${userInfo.token}`,
       },
     };
 
@@ -212,7 +207,7 @@ export const fetchEthPrice = () => async (dispatch) => {
       },
     };
     const { data } = await gecko.get(
-      `/simple/price?ids=ethereum&vs_currencies=cad`,
+      `/simple/price?ids=ethereum&vs_currencies=usd`,
       config
     );
 

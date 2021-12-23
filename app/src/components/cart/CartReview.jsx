@@ -3,14 +3,19 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Paper, Grid, Button, Typography } from '@mui/material';
 import { useHistory } from 'react-router-dom';
+import LoadingButton from '@mui/lab/LoadingButton';
 import { fetchUserDetails } from '../../actions/userAction';
 import Message from '../Message';
 import Loader from '../Loader';
-import { connectWallet } from '../../actions/lazyFactoryAction';
+import { connectWallet, mintAndRedeem } from '../../actions/lazyFactoryAction';
+import { fetchOneArtWork } from '../../actions/artworkAction';
+import { fetchEthPrice } from '../../actions/marketPlaceAction';
 
 function CartReview({ setTabValue, formValues }) {
   const dispatch = useDispatch();
   const history = useHistory();
+
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const userDetails = useSelector((state) => state.userDetails);
   const {
@@ -19,12 +24,25 @@ function CartReview({ setTabValue, formValues }) {
     success: successUserDetails,
   } = userDetails;
 
+  const theArtwork = useSelector((state) => state.theArtwork);
+  const { success: successArtwork, artwork } = theArtwork;
+
   const walletConnection = useSelector((state) => state.walletConnection);
   const {
     wallet,
     success: successWallet,
     error: errorWallet,
   } = walletConnection;
+
+  const buyAndMint = useSelector((state) => state.buyAndMint);
+  const {
+    purchased,
+    error: errorMintAndBuy,
+    loading: loadingMintAndBuy,
+  } = buyAndMint;
+
+  const theCart = useSelector((state) => state.theCart);
+  const { cartItems } = theCart;
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -35,23 +53,20 @@ function CartReview({ setTabValue, formValues }) {
     }
   }, [userInfo, history, successUserDetails]);
 
+  // fetch artwork if not success
   useEffect(() => {
+    if (!successArtwork && cartItems[0].artworkId) {
+      dispatch(fetchOneArtWork(cartItems[0].artworkId));
+    }
+  }, [dispatch, cartItems, successArtwork]);
+
+  useEffect(() => {
+    dispatch(fetchEthPrice());
     dispatch(connectWallet());
     window.ethereum.on('accountsChanged', function (accounts) {
       dispatch(connectWallet());
     });
   }, [dispatch]);
-
-  // useEffect(() => {
-  //   if (window.ethereum) {
-  //     window.ethereum.on('accountsChanged', (accounts) => {
-  //       if (accounts.length > 0) {
-  //         // [walletAddress] = accounts;
-  //         dispatch(connectWallet());
-  //       }
-  //     });
-  //   }
-  // }, [dispatch]);
 
   // edit
   const onEdit = () => {
@@ -119,11 +134,25 @@ function CartReview({ setTabValue, formValues }) {
               Edit
             </Button>
             {successWallet ? (
-              <Button
+              <LoadingButton
                 variant="custom"
+                disabled={isDisabled}
+                loading={loadingMintAndBuy}
                 color="primary"
                 sx={{ width: '100%' }}
-                onClick={() => dispatch(connectWallet())}
+                onClick={
+                  !successWallet
+                    ? () => dispatch(connectWallet())
+                    : () =>
+                        dispatch(
+                          mintAndRedeem(
+                            artwork._id,
+                            artwork.user.store_address,
+                            artwork.voucher,
+                            artwork.price
+                          )
+                        )
+                }
               >
                 Purchase by
                 <Typography
@@ -132,7 +161,7 @@ function CartReview({ setTabValue, formValues }) {
                 >
                   {userAccountStart}...{userAccountEnd}
                 </Typography>
-              </Button>
+              </LoadingButton>
             ) : (
               <Button
                 variant="custom"
@@ -146,8 +175,10 @@ function CartReview({ setTabValue, formValues }) {
           </Grid>
         </Grid>
       </Paper>
-      {(errorUserDetails || errorWallet) && (
-        <Message severity="error">{errorUserDetails || errorWallet}</Message>
+      {(errorUserDetails || errorWallet || errorMintAndBuy) && (
+        <Message severity="error">
+          {errorUserDetails || errorWallet || errorMintAndBuy}
+        </Message>
       )}
       {loadingUserDetails && <Loader />}
     </div>

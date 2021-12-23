@@ -100,10 +100,9 @@ function Artwork() {
   // fetch artwork if not success
   useEffect(() => {
     if (!successArtwork && workId) {
-      console.log(workId);
       dispatch(fetchOneArtWork(workId));
     }
-  }, [dispatch, workId, successArtwork]);
+  }, [dispatch, workId]);
 
   // quantity = 0
   useEffect(() => {

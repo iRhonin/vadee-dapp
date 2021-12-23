@@ -21,6 +21,7 @@ class Voucher {
       verifyingContract: this.contract.address,
       chainId,
     };
+
     return this.domainData;
   }
 
@@ -36,7 +37,7 @@ class Voucher {
         { name: 'content', type: 'string' },
       ],
     };
-
+    console.log(domain);
     const theId = parseInt(artworkId);
 
     const voucher = {

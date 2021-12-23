@@ -86,7 +86,7 @@ export const deployMyStore =
   };
 
 export const signMyItem =
-  (signerContractAddress, artworkId, title, price, firstName, tokenUri) =>
+  (signerContractAddress, artwork, artworkPriceEth, firstName, tokenUri) =>
   async (dispatch) => {
     let voucher;
     try {
@@ -95,7 +95,10 @@ export const signMyItem =
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      const sellingPrice = ethers.utils.parseUnits(price.toString(), 'ether');
+      const sellingPrice = ethers.utils.parseUnits(
+        artworkPriceEth.toString(),
+        'ether'
+      );
       const signerFactory = new ethers.ContractFactory(
         LazyFactory.abi,
         LazyFactory.bytecode,
@@ -107,8 +110,8 @@ export const signMyItem =
       const theSignature = new Voucher({ contract: signerContract, signer });
 
       voucher = await theSignature.signTransaction(
-        artworkId,
-        title,
+        artwork._id,
+        artwork.title,
         sellingPrice,
         firstName,
         tokenUri
@@ -164,28 +167,29 @@ export const mintAndRedeem =
           Authorization: `Bearer ${userInfo.token}`,
         },
       };
+
+      const theVoucher = {
+        title: voucher.title,
+        artworkId,
+        price: voucher.price,
+        tokenUri: voucher.token_Uri,
+        content: voucher.content,
+        signature: voucher.signature,
+      };
+      console.log(theVoucher);
+
       const { data } = await artworksBase.get(
         `/market/fees/${price.toString()}`,
         config
       );
 
       const fee = ethers.utils.parseUnits(
-        data.transaction_fee.toString(),
+        data.transaction_fee_ether.toString(),
         'ether'
       );
 
-      const sellingPrice = ethers.utils.parseUnits(price.toString(), 'ether');
-
-      const theVoucher = {
-        artworkId,
-        sellingPrice,
-        tokenUri: voucher.token_Uri,
-        content: voucher.content,
-        signature: voucher.signature,
-      };
-
       await redeemerContract.redeem(redeemerAddress, theVoucher, fee, {
-        value: sellingPrice,
+        value: theVoucher.price,
       });
 
       dispatch({
@@ -194,13 +198,14 @@ export const mintAndRedeem =
       });
     } catch (e) {
       console.log('problem buying: ');
-      console.log({ e });
       dispatch({
         type: BUYER_MINT_AND_REDEEM_FAIL,
-        payload:
-          e.response && e.response.data.detail
-            ? e.response.data.detail
-            : e.message,
+        // eslint-disable-next-line no-nested-ternary
+        payload: e.error
+          ? e.error.message
+          : e.response && e.response.data.details
+          ? e.response.data.detail
+          : e.message,
       });
     }
   };

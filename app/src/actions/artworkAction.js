@@ -94,20 +94,16 @@ export const updateArtwork =
           Authorization: `Bearer ${userInfo.token}`,
         },
       };
+
       // eslint-disable-next-line no-undef
       const formData = new FormData();
 
       // Option Sign: update product when sign the product
       if (action === 'Signing') {
-        console.log(artwork._id);
-
-        const sellingPrice = ethers.utils.parseUnits(
-          artwork.price.toString(),
-          'ether'
-        );
         formData.append('signature', voucher.signature);
+        formData.append('title', voucher.title);
         formData.append('artworkId', voucher.artworkId);
-        formData.append('sellingPrice', sellingPrice); // ether to wei
+        formData.append('sellingPrice', voucher.price);
         formData.append('tokenUri', voucher.tokenUri);
         formData.append('content', voucher.content);
         formData.append('sellerAddress', sellerAddress);

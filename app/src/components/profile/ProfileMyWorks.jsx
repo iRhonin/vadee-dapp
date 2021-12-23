@@ -18,10 +18,17 @@ import {
 import LoadingButton from '@mui/lab/LoadingButton';
 import Loader from '../Loader';
 import Message from '../Message';
-import { fetchArtistWorks, updateUserStore } from '../../actions/userAction';
+import {
+  fetchArtistWorks,
+  fetchUserDetails,
+  updateUserStore,
+} from '../../actions/userAction';
 import MyArtCard from './MyArtCard';
 import { DEPLOY_MY_STORE_RESET } from '../../constants/lazyFactoryConstants';
-import { fetchMarketPlace } from '../../actions/marketPlaceAction';
+import {
+  fetchEthPrice,
+  fetchMarketPlace,
+} from '../../actions/marketPlaceAction';
 import { deployMyStore } from '../../actions/lazyFactoryAction';
 
 const useStyles = makeStyles((theme) => ({
@@ -89,6 +96,7 @@ function ProfileMyWorks() {
   useEffect(() => {
     dispatch(fetchMarketPlace());
     dispatch(fetchArtistWorks());
+    dispatch(fetchEthPrice());
   }, [dispatch]);
 
   // contract address and factory
@@ -97,6 +105,7 @@ function ProfileMyWorks() {
       setSignerContractAddress(user.store_address);
     } else if (successMyStore) {
       setSignerContractAddress(BLOCKCHAIN.signerContract.address);
+      dispatch(fetchUserDetails());
     }
   }, [successMyStore, user]);
 
@@ -166,7 +175,7 @@ function ProfileMyWorks() {
                     sx={{ paddingRight: 5 }}
                   >
                     {myWorks.works.my_artworks.map((artwork) => (
-                      <MyArtCard key={artwork._id} artwork={artwork} />
+                      <MyArtCard key={artwork._id} artworkId={artwork._id} />
                     ))}
                   </ImageList>
                 </Grid>
@@ -178,7 +187,7 @@ function ProfileMyWorks() {
                       {myWorks.works.my_artworks.map((artwork) => (
                         <Grid key={artwork._id}>
                           <Paper className={classes.paper}>
-                            <MyArtCard key={artwork._id} artwork={artwork} />
+                            <MyArtCard artworkId={artwork._id} />
                           </Paper>
                         </Grid>
                       ))}

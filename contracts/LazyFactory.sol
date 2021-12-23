@@ -1,6 +1,5 @@
 //SPDX-License-Identifier: MIT
 pragma solidity ^0.8.3;
-pragma abicoder v2; // required to accept structs as function parameters
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -9,7 +8,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "hardhat/console.sol";
-import "./MarketPlace.sol";
 
 contract LazyFactory is
     ERC721URIStorage,
@@ -18,11 +16,17 @@ contract LazyFactory is
     ReentrancyGuard
 {
     address payable theMarketPlace;
-    string private constant SIGNING_DOMAIN = "VADEE";
-    string private constant SIGNATURE_VERSION = "1";
+    address payable theArtist;
+    string private constant SIGNING_DOMAIN_NAME = "VADEE";
+    string private constant SIGNING_DOMAIN_VERSION = "1";
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
+    bytes32 constant VOUCHER_TYPEHASH =
+        keccak256(
+            "Voucher(string title,uint256 artworkId,uint256 price,string tokenUri,string content)"
+        );
 
     struct Voucher {
+        string title;
         uint256 artworkId;
         uint256 price;
         string tokenUri;
@@ -37,9 +41,10 @@ contract LazyFactory is
         string memory name,
         string memory symbol,
         address payable artist
-    ) ERC721(name, symbol) EIP712(SIGNING_DOMAIN, SIGNATURE_VERSION) {
+    ) ERC721(name, symbol) EIP712(SIGNING_DOMAIN_NAME, SIGNING_DOMAIN_VERSION) {
         _setupRole(SIGNER_ROLE, artist);
         theMarketPlace = marketplaceAddress;
+        theArtist = artist;
     }
 
     function redeem(
@@ -47,22 +52,29 @@ contract LazyFactory is
         Voucher calldata voucher,
         uint256 transactionFee
     ) public payable nonReentrant returns (uint256) {
-        address signer = _verify(voucher);
-        require(signer != buyer, "You can not purchase your own token");
-        require(hasRole(SIGNER_ROLE, signer), "Invalid Signature");
-        require(msg.value == voucher.price, "Enter the correct price");
+        address artist = _verify(voucher);
+        console.log(voucher.title);
+        console.log(voucher.artworkId);
+        console.log(voucher.price);
+        console.log(msg.value);
+        console.log(voucher.content);
+        console.log(artist);
+        console.log(buyer);
 
-        _mint(signer, voucher.artworkId);
+        require(msg.value == voucher.price, "Enter the correct price");
+        require(artist != buyer, "You can not purchase your own token");
+        require(hasRole(SIGNER_ROLE, artist), "Invalid Signature");
+
+        _mint(artist, voucher.artworkId);
         _setTokenURI(voucher.artworkId, voucher.tokenUri);
         setApprovalForAll(theMarketPlace, true); // sender approves Market Place to transfer tokens
 
         // transfer the token to the buyer
-        _transfer(signer, buyer, voucher.artworkId);
+        _transfer(artist, buyer, voucher.artworkId);
 
         uint256 amount = msg.value;
-        address payable artist = payable(signer);
         theMarketPlace.transfer(transactionFee);
-        artist.transfer(amount - transactionFee);
+        payable(artist).transfer(amount - transactionFee);
 
         return voucher.artworkId;
     }
@@ -73,9 +85,8 @@ contract LazyFactory is
             _hashTypedDataV4(
                 keccak256(
                     abi.encode(
-                        keccak256(
-                            "Voucher(uint256 artworkId,uint256 price,string tokenUri,string content)"
-                        ),
+                        VOUCHER_TYPEHASH,
+                        keccak256(bytes(voucher.title)),
                         voucher.artworkId,
                         voucher.price,
                         keccak256(bytes(voucher.tokenUri)),

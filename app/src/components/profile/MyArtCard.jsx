@@ -12,14 +12,16 @@ import PropTypes from 'prop-types';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { favArtwork } from '../../actions/userAction';
 import { signMyItem } from '../../actions/lazyFactoryAction';
-import { updateArtwork } from '../../actions/artworkAction';
+import { fetchOneArtWork, updateArtwork } from '../../actions/artworkAction';
 import { SIGN_MY_ITEM_RESET } from '../../constants/lazyFactoryConstants';
+import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 
-export default function MyArtCard({ artwork }) {
+export default function MyArtCard({ artworkId }) {
   const dispatch = useDispatch();
 
   const [signerContractAddress, setSignerContractAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(false);
 
   const userDetails = useSelector((state) => state.userDetails);
   const { user } = userDetails;
@@ -32,8 +34,14 @@ export default function MyArtCard({ artwork }) {
     success: successSignature,
   } = myVoucher;
 
+  const theArtwork = useSelector((state) => state.theArtwork);
+  const { artwork, success: successArtwork } = theArtwork;
+
   const artworkUpdate = useSelector((state) => state.artworkUpdate);
   const { success: successUpdateArtwork } = artworkUpdate;
+
+  const ethPrice = useSelector((state) => state.ethPrice);
+  const { result, success: successEthPrice } = ethPrice;
 
   // loading button
   useEffect(() => {
@@ -43,33 +51,50 @@ export default function MyArtCard({ artwork }) {
       setIsLoading(false);
     }
   }, [loadingSignature]);
+
+  // disable button before fetching ETH price
+  useEffect(() => {
+    if (successEthPrice) {
+      setIsDisabled(false);
+    } else {
+      setIsDisabled(true);
+    }
+  }, [successEthPrice]);
+
   // contract address and factory
   useEffect(() => {
     if (user && user.store_address) {
+      dispatch({ type: ARTWORK_UPDATE_RESET });
       setSignerContractAddress(user.store_address);
     }
   }, [user]);
 
+  // fetch artwork if not success
   useEffect(() => {
-    if (successSignature) {
+    dispatch(fetchOneArtWork(artworkId));
+  }, [dispatch, artworkId]);
+
+  useEffect(() => {
+    if (successSignature && !successUpdateArtwork) {
       // add signature backend - storeAddress = false / walletAddress = false
       dispatch(
         updateArtwork(artwork, false, signerAddress, false, voucher, 'Signing')
       );
     } else if (successUpdateArtwork) {
+      dispatch(fetchOneArtWork(artworkId));
       dispatch({ type: SIGN_MY_ITEM_RESET });
     }
-  }, [successUpdateArtwork, successSignature, artwork]);
+  }, [successUpdateArtwork, signerAddress, successSignature, artwork]);
 
   // handle signature
-  const handleSignature = async (artworkId, title, price) => {
+  const handleSignature = async () => {
+    const artworkPriceEth = artwork.price / result.ethereum.usd;
     if (signerContractAddress) {
       dispatch(
         signMyItem(
           signerContractAddress,
-          artworkId,
-          title,
-          price,
+          artwork,
+          artworkPriceEth,
           user.firstName,
           'tokenUri'
         )
@@ -88,7 +113,7 @@ export default function MyArtCard({ artwork }) {
           },
         }}
       >
-        {artwork && (
+        {successArtwork && (
           <ImageListItem style={{ color: '#666666' }}>
             <Link
               style={{ position: 'absolute', width: '100%', height: '100%' }}
@@ -118,11 +143,13 @@ export default function MyArtCard({ artwork }) {
               position="below"
               actionIcon={
                 <LoadingButton
+                  disabled={isDisabled}
                   loading={isLoading}
-                  onClick={() =>
-                    handleSignature(artwork._id, artwork.title, artwork.price)
+                  size="small"
+                  onClick={() => handleSignature()}
+                  variant={
+                    !artwork.voucher.signature ? 'contained' : 'outlined'
                   }
-                  variant="contained"
                   sx={{ width: '100%' }}
                 >
                   {!artwork.voucher.signature
@@ -139,5 +166,5 @@ export default function MyArtCard({ artwork }) {
 }
 
 MyArtCard.propTypes = {
-  artwork: PropTypes.object.isRequired,
+  artworkId: PropTypes.number,
 };

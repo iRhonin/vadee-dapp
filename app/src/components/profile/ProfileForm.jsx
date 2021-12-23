@@ -73,17 +73,17 @@ function ProfileForm() {
     dispatch(fetchUserDetails());
   }, [dispatch]);
 
-  useEffect(() => {
-    const cartItemFromStorage = localStorage.getItem('cartItems')
-      ? JSON.parse(localStorage.getItem('cartItems'))
-      : [];
+  // useEffect(() => {
+  //   const cartItemFromStorage = localStorage.getItem('cartItems')
+  //     ? JSON.parse(localStorage.getItem('cartItems'))
+  //     : [];
 
-    if (!successUserDetails && !cartItemFromStorage) {
-      history.push(`/artworks`);
-    } else if (cartItemFromStorage[0]) {
-      history.push(`/artworks/${cartItemFromStorage[0].artworkId}`);
-    }
-  }, [userInfo, history, successUserDetails]);
+  //   if (!successUserDetails && !cartItemFromStorage) {
+  //     history.push(`/artworks`);
+  //   } else if (cartItemFromStorage[0]) {
+  //     history.push(`/artworks/${cartItemFromStorage[0].artworkId}`);
+  //   }
+  // }, [userInfo, history, successUserDetails]);
 
   useEffect(() => {
     if (!successUserDetails || successUpdate) {

@@ -51,7 +51,8 @@ const Main = () => {
   const marketPlaceDeployment = useSelector(
     (state) => state.marketPlaceDeployment
   );
-  const { success: successBlockchain } = marketPlaceDeployment;
+  const { loading: loadingMarketDeploy, success: successMarketDeploy } =
+    marketPlaceDeployment;
 
   const theMarketPlace = useSelector((state) => state.theMarketPlace);
   const { marketPlace } = theMarketPlace;
@@ -70,7 +71,7 @@ const Main = () => {
   useEffect(() => {
     dispatch(fetchAllArtWorks(keyword));
     dispatch(fetchMarketPlace());
-  }, [dispatch, keyword, successBlockchain]);
+  }, [dispatch, keyword, successMarketDeploy]);
 
   useEffect(() => {
     dispatch(cleanLocalCart());
@@ -96,9 +97,13 @@ const Main = () => {
 
   return (
     <>
-      {marketPlace && !marketPlace.contract ? (
+      {!marketPlace || !marketPlace.contract ? (
         <Grid sx={{ margin: 'auto', textAlign: 'center' }}>
-          <LoadingButton onClick={() => dispatch(deployMarketPlace())}>
+          <LoadingButton
+            loading={loadingMarketDeploy}
+            onClick={() => dispatch(deployMarketPlace())}
+            variant="contained"
+          >
             Deploy Market Place
           </LoadingButton>
         </Grid>

@@ -21,7 +21,7 @@ export const artworkReducer = (state = { artwork: {} }, action) => {
     case ARTWORK_DETAILS_REQUEST:
       return { loading: true, ...state };
     case ARTWORK_DETAILS_SUCCESS:
-      return { loading: false, artwork: action.payload };
+      return { loading: false, success: true, artwork: action.payload };
     case ARTWORK_DETAILS_FAIL:
       return { loading: false, error: action.payload };
     case ARTWORK_DETAILS_RESET:

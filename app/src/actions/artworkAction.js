@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import artworksBase from '../apis/artworksBase';
 import {
   ARTWORK_LIST_REQUEST,
@@ -13,6 +12,9 @@ import {
   ARTWORK_UPDATE_REQUEST,
   ARTWORK_UPDATE_FAIL,
   ARTWORK_UPDATE_SUCCESS,
+  ARTWORK_VOUCHER_DELETE_FAIL,
+  ARTWORK_VOUCHER_DELETE_REQUEST,
+  ARTWORK_VOUCHER_DELETE_SUCCESS,
 } from '../constants/artworkConstants';
 
 export const fetchAllArtWorks =
@@ -30,7 +32,7 @@ export const fetchAllArtWorks =
       dispatch({
         type: ARTWORK_LIST_FAIL,
         payload:
-          e.response && e.response.data.detail
+          e.response && e.response.data.details
             ? e.response.data.details
             : e.message,
       });
@@ -51,7 +53,7 @@ export const fetchOneArtWork = (workId) => async (dispatch) => {
     dispatch({
       type: ARTWORK_DETAILS_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -71,7 +73,7 @@ export const fetchCategories = () => async (dispatch) => {
     dispatch({
       type: CATEGORY_LIST_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -79,7 +81,7 @@ export const fetchCategories = () => async (dispatch) => {
 };
 
 export const updateArtwork =
-  (artwork, storeAddress, sellerAddress, buyerAddress, voucher, action) =>
+  (artwork, galleryAddress, sellerAddress, buyerAddress, voucher, action) =>
   async (dispatch, getState) => {
     try {
       dispatch({ type: ARTWORK_UPDATE_REQUEST });
@@ -98,28 +100,30 @@ export const updateArtwork =
       // eslint-disable-next-line no-undef
       const formData = new FormData();
 
-      // Option Sign: update product when sign the product
+      // 1 -Option Sign: update product when sign the product
       if (action === 'Signing') {
         formData.append('signature', voucher.signature);
         formData.append('title', voucher.title);
         formData.append('artworkId', voucher.artworkId);
-        formData.append('sellingPrice', voucher.price);
+        formData.append('editionNumber', voucher.editionNumber);
+        formData.append('edition', voucher.edition);
+        formData.append('priceWei', voucher.priceWei);
+        formData.append('priceDollar', voucher.priceDollar);
         formData.append('tokenUri', voucher.tokenUri);
         formData.append('content', voucher.content);
-        formData.append('sellerAddress', sellerAddress);
       }
       // Option Redeem and Mint: update product when mint the product
       else if (action === 'RedeemAndMint') {
         formData.append('artworkId', artwork._id);
-        formData.append('sellerAddress', sellerAddress); // flu
-        formData.append('buyerAddress', buyerAddress); // flu
-        formData.append('storeAddress', storeAddress);
+        formData.append('sellerAddress', sellerAddress);
+        formData.append('buyerAddress', buyerAddress);
+        formData.append('galleryAddress', galleryAddress);
       }
       // Option Add to market: create a market sell
       else if (action === 'MarketPlace') {
         formData.append('artworkId', artwork._id);
         formData.append('walletAddress', sellerAddress); // seller
-        formData.append('storeAddress', storeAddress);
+        formData.append('galleryAddress', galleryAddress);
       }
 
       const { data } = await artworksBase.put(
@@ -136,9 +140,42 @@ export const updateArtwork =
       dispatch({
         type: ARTWORK_UPDATE_FAIL,
         payload:
-          e.response && e.response.data.detail
-            ? e.response.data.detail
+          e.response && e.response.data.details
+            ? e.response.data.details
             : e.message,
       });
     }
   };
+
+export const deleteVoucher = (voucherId) => async (dispatch, getState) => {
+  try {
+    dispatch({ type: ARTWORK_VOUCHER_DELETE_REQUEST });
+    const {
+      userLogin: { userInfo },
+    } = getState();
+
+    const { data } = await artworksBase.delete(
+      `artworks/voucher/${voucherId}/delete/`,
+      {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      }
+    );
+
+    dispatch({
+      type: ARTWORK_VOUCHER_DELETE_SUCCESS,
+      payload: data,
+    });
+  } catch (e) {
+    // check for generic and custom message to return using ternary statement
+    dispatch({
+      type: ARTWORK_VOUCHER_DELETE_FAIL,
+      payload:
+        e.response && e.response.data.details
+          ? e.response.data.details
+          : e.message,
+    });
+  }
+};

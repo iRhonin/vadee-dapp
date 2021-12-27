@@ -35,6 +35,9 @@ import {
   MARKET_ETH_PRICE_SUCCESS,
   MARKET_ETH_PRICE_FAIL,
   MARKET_ETH_PRICE_RESET,
+  MARKET_FEE_REQUEST,
+  MARKET_FEE_SUCCESS,
+  MARKET_FEE_FAIL,
   //   MY_PURCHASED_NFT_FAIL,
   //   MY_PURCHASED_NFT_REQUEST,
   //   MY_PURCHASED_NFT_SUCCESS,
@@ -55,6 +58,30 @@ export const marketPlaceDeployReducer = (state = {}, action) => {
         BLOCKCHAIN: action.payload,
       };
     case DEPLOY_MARKET_PLACE_FAIL:
+      return {
+        loading: false,
+        error: action.payload,
+      };
+    default:
+      return state;
+  }
+};
+
+export const marketPlaceFeeReducer = (state = {}, action) => {
+  switch (action.type) {
+    case MARKET_FEE_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: false,
+      };
+    case MARKET_FEE_SUCCESS:
+      return {
+        loading: false,
+        success: true,
+        fee: action.payload,
+      };
+    case MARKET_FEE_FAIL:
       return {
         loading: false,
         error: action.payload,
@@ -135,30 +162,6 @@ export const MarketBalanceReducer = (state = {}, action) => {
       return state;
   }
 };
-
-// export const NftListReducer = (state = {}, action) => {
-//   switch (action.type) {
-//     case NFT_LIST_REQUEST:
-//       return {
-//         ...state,
-//         loading: true,
-//         success: false,
-//       };
-//     case NFT_LIST_SUCCESS:
-//       return {
-//         loading: false,
-//         success: true,
-//         availableNFTs: action.payload,
-//       };
-//     case NFT_LIST_FAIL:
-//       return {
-//         loading: false,
-//         error: action.payload,
-//       };
-//     default:
-//       return state;
-//   }
-// };
 
 export const marketPlaceAddReducer = (state = {}, action) => {
   switch (action.type) {

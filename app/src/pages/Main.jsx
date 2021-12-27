@@ -56,6 +56,7 @@ const Main = () => {
 
   const theMarketPlace = useSelector((state) => state.theMarketPlace);
   const { marketPlace } = theMarketPlace;
+
   const keyword = history.location.search;
 
   // loading IconButton

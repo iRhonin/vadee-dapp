@@ -1,10 +1,12 @@
 import { combineReducers } from '@reduxjs/toolkit';
-import { artworksReducer, artworkDeleteReducer } from './artworksReducer.js';
 import {
+  artworksReducer,
+  artworkDeleteReducer,
   artworkReducer,
   artworkUpdateReducer,
   artworkCreateReducer,
   categoriesReducer,
+  artworkVoucherDeleteReducer,
 } from './artworkReducer.js';
 import cartReducer from './cartReducer.js';
 import {
@@ -28,12 +30,16 @@ import {
   orderDeliverReducer,
 } from './orderReducer';
 import headerReducer from './headerReducer';
-import { artistByIdReducer, artistListReducer } from './artistReducer.js';
+import {
+  artistByIdReducer,
+  artistGalleryReducer,
+  artistListReducer,
+} from './artistReducer.js';
 import { articleListReducer } from './articleReducer.js';
 import { filterReducer } from './filterReducer.js';
 import {
   mintAndRedeemReducer,
-  storeDeployReducer,
+  galleryDeployReducer,
   voucherReducer,
   walletConnectionReducer,
 } from './lazyFactoryReducer.js';
@@ -41,6 +47,7 @@ import {
   ethPriceReducer,
   MarketBalanceReducer,
   marketPlaceDeployReducer,
+  marketPlaceFeeReducer,
   marketPlaceReducer,
 } from './marketPlaceReducer.js';
 
@@ -49,6 +56,7 @@ export default combineReducers({
   artworks: artworksReducer,
   theArtwork: artworkReducer,
   artworkDeleteList: artworkDeleteReducer,
+  voucherDelete: artworkVoucherDeleteReducer,
   theCart: cartReducer,
   userLogin: userLoginReducer,
   userRegister: userRegisterReducer,
@@ -76,9 +84,11 @@ export default combineReducers({
   walletConnection: walletConnectionReducer,
   myVoucher: voucherReducer,
   marketPlaceDeployment: marketPlaceDeployReducer,
+  marketFee: marketPlaceFeeReducer,
   theMarketPlace: marketPlaceReducer,
   marketPlaceBalance: MarketBalanceReducer,
-  myStore: storeDeployReducer,
+  deployGallery: galleryDeployReducer,
+  backEndGallery: artistGalleryReducer,
   buyAndMint: mintAndRedeemReducer,
   ethPrice: ethPriceReducer,
 });

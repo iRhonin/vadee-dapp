@@ -6,6 +6,9 @@ import {
   ARTIST_LIST_FAIL,
   ARTIST_LIST_REQUEST,
   ARTIST_LIST_SUCCESS,
+  ARTIST_GALLERY_ADDRESS_UPDATE_REQUEST,
+  ARTIST_GALLERY_ADDRESS_UPDATE_SUCCESS,
+  ARTIST_GALLERY_ADDRESS_UPDATE_FAIL,
 } from '../constants/artistConstants';
 
 export const fetchArtistById = (id) => async (dispatch) => {
@@ -29,7 +32,7 @@ export const fetchArtistById = (id) => async (dispatch) => {
     dispatch({
       type: ARTIST_BY_ID_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -57,7 +60,50 @@ export const fetchArtistList =
       dispatch({
         type: ARTIST_LIST_FAIL,
         payload:
-          e.response && e.response.data.detail
+          e.response && e.response.data.details
+            ? e.response.data.details
+            : e.message,
+      });
+    }
+  };
+
+export const updateArtistGallery =
+  (galleryAddress, artistId, artistWalletAddress) =>
+  async (dispatch, getState) => {
+    try {
+      dispatch({ type: ARTIST_GALLERY_ADDRESS_UPDATE_REQUEST });
+      const {
+        userLogin: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      // eslint-disable-next-line no-undef
+      const formData = new FormData();
+      formData.set('galleryAddress', galleryAddress);
+      formData.set('artistWalletAddress', artistWalletAddress);
+
+      const { data } = await artworksBase.put(
+        `/artists/${artistId}/gallery/update/`,
+        formData,
+        config
+      );
+
+      dispatch({
+        type: ARTIST_GALLERY_ADDRESS_UPDATE_SUCCESS,
+        payload: data,
+      });
+    } catch (e) {
+      // check for generic and custom message to return using ternary statement
+      dispatch({
+        type: ARTIST_GALLERY_ADDRESS_UPDATE_FAIL,
+        payload:
+          e.response && e.response.data.details
             ? e.response.data.details
             : e.message,
       });

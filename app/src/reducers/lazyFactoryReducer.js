@@ -5,10 +5,10 @@ import {
   BUYER_MINT_AND_REDEEM_FAIL,
   BUYER_MINT_AND_REDEEM_REQUEST,
   BUYER_MINT_AND_REDEEM_SUCCESS,
-  DEPLOY_MY_STORE_FAIL,
-  DEPLOY_MY_STORE_REQUEST,
-  DEPLOY_MY_STORE_RESET,
-  DEPLOY_MY_STORE_SUCCESS,
+  DEPLOY_MY_GALLERY_FAIL,
+  DEPLOY_MY_GALLERY_REQUEST,
+  DEPLOY_MY_GALLERY_RESET,
+  DEPLOY_MY_GALLERY_SUCCESS,
   SIGN_MY_ITEM_FAIL,
   SIGN_MY_ITEM_REQUEST,
   SIGN_MY_ITEM_RESET,
@@ -44,26 +44,26 @@ export const walletConnectionReducer = (state = {}, action) => {
   }
 };
 
-export const storeDeployReducer = (state = {}, action) => {
+export const galleryDeployReducer = (state = {}, action) => {
   switch (action.type) {
-    case DEPLOY_MY_STORE_REQUEST:
+    case DEPLOY_MY_GALLERY_REQUEST:
       return {
         ...state,
         loading: true,
         success: false,
       };
-    case DEPLOY_MY_STORE_SUCCESS:
+    case DEPLOY_MY_GALLERY_SUCCESS:
       return {
         loading: false,
         success: true,
         BLOCKCHAIN: action.payload,
       };
-    case DEPLOY_MY_STORE_FAIL:
+    case DEPLOY_MY_GALLERY_FAIL:
       return {
         loading: false,
         error: action.payload,
       };
-    case DEPLOY_MY_STORE_RESET:
+    case DEPLOY_MY_GALLERY_RESET:
       return {};
     default:
       return state;

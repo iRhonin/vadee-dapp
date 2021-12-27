@@ -6,9 +6,9 @@ import {
   BUYER_MINT_AND_REDEEM_FAIL,
   BUYER_MINT_AND_REDEEM_REQUEST,
   BUYER_MINT_AND_REDEEM_SUCCESS,
-  DEPLOY_MY_STORE_FAIL,
-  DEPLOY_MY_STORE_REQUEST,
-  DEPLOY_MY_STORE_SUCCESS,
+  DEPLOY_MY_GALLERY_FAIL,
+  DEPLOY_MY_GALLERY_REQUEST,
+  DEPLOY_MY_GALLERY_SUCCESS,
   SIGN_MY_ITEM_FAIL,
   SIGN_MY_ITEM_REQUEST,
   SIGN_MY_ITEM_SUCCESS,
@@ -16,6 +16,8 @@ import {
 import artworksBase from '../apis/artworksBase';
 import { Voucher } from '../voucher';
 import LazyFactory from '../build/contracts/artifacts/contracts/LazyFactory.sol/LazyFactory.json';
+
+const decimalPlaces = 2;
 
 export const connectWallet = () => async (dispatch) => {
   try {
@@ -39,12 +41,12 @@ export const connectWallet = () => async (dispatch) => {
   }
 };
 
-export const deployMyStore =
-  (marketPlaceAddress, storeName) => async (dispatch) => {
+export const deployMyGallery =
+  (marketPlaceAddress, galleryName) => async (dispatch) => {
     let signerContract;
     let signerFactory;
     try {
-      dispatch({ type: DEPLOY_MY_STORE_REQUEST });
+      dispatch({ type: DEPLOY_MY_GALLERY_REQUEST });
 
       window.ethereum.request({ method: 'eth_requestAccounts' });
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -60,33 +62,34 @@ export const deployMyStore =
         signer
       );
 
+      const artistWalletAddress = await signer.getAddress();
       signerContract = await signerFactory.deploy(
         marketPlaceAddress,
         'VADEE',
-        storeName,
-        signer.getAddress()
+        galleryName,
+        artistWalletAddress
       );
       await signerContract.deployTransaction.wait(); // loading before confirmed transaction
 
       dispatch({
-        type: DEPLOY_MY_STORE_SUCCESS,
-        payload: { signerContract, signerFactory },
+        type: DEPLOY_MY_GALLERY_SUCCESS,
+        payload: { signerContract, signerFactory, artistWalletAddress },
       });
     } catch (e) {
       console.log({ e });
       console.log('problem deploying: ');
       dispatch({
-        type: DEPLOY_MY_STORE_FAIL,
+        type: DEPLOY_MY_GALLERY_FAIL,
         payload:
-          e.response && e.response.data.detail
-            ? e.response.data.detail
+          e.response && e.response.data.details
+            ? e.response.data.details
             : e.message,
       });
     }
   };
 
 export const signMyItem =
-  (signerContractAddress, artwork, artworkPriceEth, firstName, tokenUri) =>
+  (artistGalleryAddress, artwork, artworkPriceEth, priceInDollar, firstName) =>
   async (dispatch) => {
     let voucher;
     try {
@@ -95,50 +98,89 @@ export const signMyItem =
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const signerAddress = await signer.getAddress();
-      const sellingPrice = ethers.utils.parseUnits(
-        artworkPriceEth.toString(),
-        'ether'
-      );
+      const validateAddress = () => {
+        if (signerAddress !== artwork.artist.wallet_address) {
+          const wallet = artwork.artist.wallet_address;
+          const userAccountStart = wallet ? wallet.slice(0, 5) : null;
+          const userAccountEnd = wallet ? wallet.slice(-5) : null;
+          throw new Error(
+            `Please use the wallet ${userAccountStart}...${userAccountEnd}`
+          );
+        }
+      };
+      validateAddress();
       const signerFactory = new ethers.ContractFactory(
         LazyFactory.abi,
         LazyFactory.bytecode,
         signer
       );
 
-      const signerContract = await signerFactory.attach(signerContractAddress);
+      const signerContract = await signerFactory.attach(artistGalleryAddress);
 
-      const theSignature = new Voucher({ contract: signerContract, signer });
+      if (signerAddress === artwork.artist.wallet_address) {
+        const theSignature = new Voucher({ contract: signerContract, signer });
 
-      voucher = await theSignature.signTransaction(
-        artwork._id,
-        artwork.title,
-        sellingPrice,
-        firstName,
-        tokenUri
-      );
+        const priceInWei = ethers.utils.parseUnits(
+          artworkPriceEth.toFixed(4),
+          'ether',
+          decimalPlaces
+        );
 
-      dispatch({
-        type: SIGN_MY_ITEM_SUCCESS,
-        payload: { voucher, signerAddress },
-      });
+        voucher = await theSignature.signTransaction(
+          artwork._id,
+          artwork.title,
+          artwork.edition_number,
+          artwork.edition_total,
+          priceInWei,
+          priceInDollar,
+          firstName,
+          'tokenUri'
+        );
+
+        dispatch({
+          type: SIGN_MY_ITEM_SUCCESS,
+          payload: { voucher, signerAddress },
+        });
+      }
     } catch (e) {
       console.log('problem Signing: ');
       console.log(e);
       dispatch({
         type: SIGN_MY_ITEM_FAIL,
         payload:
-          e.response && e.response.data.detail
-            ? e.response.data.detail
+          e.response && e.response.data.details
+            ? e.response.data.details
             : e.message,
       });
     }
   };
 
 export const mintAndRedeem =
-  (artworkId, signerContractAddress, voucher, price) =>
+  (artworkId, artistGalleryAddress, voucher, price) =>
   async (dispatch, getState) => {
     try {
       dispatch({ type: BUYER_MINT_AND_REDEEM_REQUEST });
+      const {
+        userLogin: { userInfo },
+      } = getState();
+
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${userInfo.token}`,
+        },
+      };
+
+      const { data } = await artworksBase.get(
+        `/market/fees/${price.toString()}`,
+        config
+      );
+
+      const fee = ethers.utils.parseUnits(
+        parseInt(data.transaction_fee_ether).toFixed(6),
+        'ether'
+      );
+
       window.ethereum.request({ method: 'eth_requestAccounts' });
 
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -154,39 +196,20 @@ export const mintAndRedeem =
 
       // Return an instance of a Contract attached to address. This is the same as using the Contract constructor
       // with address and this the interface and signerOrProvider passed in when creating the ContractFactory.
-      const redeemerContract = redeemerFactory.attach(signerContractAddress);
+      const redeemerContract = redeemerFactory.attach(artistGalleryAddress);
       const redeemerAddress = await redeemer.getAddress();
 
-      const {
-        userLogin: { userInfo },
-      } = getState();
-
-      const config = {
-        headers: {
-          'Content-type': 'application/json',
-          Authorization: `Bearer ${userInfo.token}`,
-        },
-      };
-
       const theVoucher = {
-        title: voucher.title,
         artworkId,
-        price: voucher.price,
+        title: voucher.title,
+        editionNumber: voucher.edition_number,
+        edition: voucher.edition,
+        priceWei: voucher.price_wei,
+        priceDollar: voucher.price_dollar,
         tokenUri: voucher.token_Uri,
         content: voucher.content,
         signature: voucher.signature,
       };
-      console.log(theVoucher);
-
-      const { data } = await artworksBase.get(
-        `/market/fees/${price.toString()}`,
-        config
-      );
-
-      const fee = ethers.utils.parseUnits(
-        data.transaction_fee_ether.toString(),
-        'ether'
-      );
 
       await redeemerContract.redeem(redeemerAddress, theVoucher, fee, {
         value: theVoucher.price,
@@ -198,13 +221,15 @@ export const mintAndRedeem =
       });
     } catch (e) {
       console.log('problem buying: ');
+      console.log({ e });
+
       dispatch({
         type: BUYER_MINT_AND_REDEEM_FAIL,
         // eslint-disable-next-line no-nested-ternary
         payload: e.error
           ? e.error.message
           : e.response && e.response.data.details
-          ? e.response.data.detail
+          ? e.response.data.details
           : e.message,
       });
     }

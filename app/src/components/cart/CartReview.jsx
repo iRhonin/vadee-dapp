@@ -55,7 +55,7 @@ function CartReview({ setTabValue, formValues }) {
 
   // fetch artwork if not success
   useEffect(() => {
-    if (!successArtwork && cartItems[0].artworkId) {
+    if (!successArtwork && cartItems[0] && cartItems[0].artworkId) {
       dispatch(fetchOneArtWork(cartItems[0].artworkId));
     }
   }, [dispatch, cartItems, successArtwork]);
@@ -147,7 +147,7 @@ function CartReview({ setTabValue, formValues }) {
                         dispatch(
                           mintAndRedeem(
                             artwork._id,
-                            artwork.user.store_address,
+                            artwork.artist.gallery_address,
                             artwork.voucher,
                             artwork.price
                           )

@@ -7,7 +7,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { useParams } from 'react-router';
-import { fetchOneArtWork, addToCart, headerStatus } from '../../actions/index';
+import { fetchMarketFee } from '../../actions/marketPlaceAction';
+import { fetchOneArtWork } from '../../actions/artworkAction';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,27 +27,34 @@ export default function PurchaseCard() {
 
   const [shippingPrice, setShippingPrice] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [serviceFee, setServiceFee] = useState(10);
-  const theArtwork = useSelector((state) => state.theArtwork);
-  const { artwork } = theArtwork;
+  const [serviceFee, setServiceFee] = useState(0);
 
   const theCart = useSelector((state) => state.theCart);
   const { cartItems } = theCart;
 
-  const orderDetails = useSelector((state) => state.orderDetails);
-  const { orderById } = orderDetails;
+  const marketFee = useSelector((state) => state.marketFee);
+  const { fee, success: successMarketFee } = marketFee;
 
   useEffect(() => {
-    if (cartItems[0]) {
+    if (successMarketFee && cartItems[0]) {
+      setServiceFee(fee);
       setShippingPrice(0);
-      setTotalPrice(cartItems[0].price + shippingPrice);
+      setTotalPrice(cartItems[0].price + shippingPrice + serviceFee);
     }
-  }, [cartItems, shippingPrice]);
+    console.log(serviceFee);
+  }, [cartItems, shippingPrice, serviceFee, successMarketFee, fee]);
+
+  useEffect(() => {
+    if (cartItems && cartItems[0] && workId) {
+      dispatch(fetchMarketFee(cartItems[0].price));
+      dispatch(fetchOneArtWork(workId));
+    }
+  }, [cartItems, dispatch, workId]);
 
   const classes = useStyles();
   return (
     <>
-      {!cartItems[0] ? null : (
+      {!cartItems[0] || !successMarketFee || !serviceFee ? null : (
         <Paper className={classes.root} elevation={0} variant="outlined" square>
           <Grid
             container

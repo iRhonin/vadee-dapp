@@ -1,4 +1,5 @@
 /* eslint-disable no-nested-ternary */
+import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import Hidden from '@mui/material/Hidden';
 import { useSelector, useDispatch } from 'react-redux';
@@ -21,6 +22,7 @@ import CarouselArtistArtworks from '../components/carousel/CarouselArtistArtwork
 import RelatedCategory from '../components/carousel/RelatedCategory';
 import CarouselArtist from '../components/carousel/CarouselArtist';
 import { ARTIST_LIST_RESET } from '../constants/artistConstants';
+import { ARTWORK_DETAILS_RESET } from '../constants/artworkConstants';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -50,6 +52,7 @@ function Artwork() {
   const [isLoading, setIsLoading] = useState(false);
   const [isImageLoading, setIsImageLoading] = useState(false);
   const [isFav, setIsFav] = useState(false);
+  const [priceEth, setPriceEth] = useState();
 
   const userLogin = useSelector((state) => state.userLogin);
   const { userInfo } = userLogin;
@@ -99,9 +102,12 @@ function Artwork() {
 
   // fetch artwork if not success
   useEffect(() => {
-    if (!successArtwork && workId) {
+    if (workId) {
       dispatch(fetchOneArtWork(workId));
     }
+    return () => {
+      dispatch({ type: ARTWORK_DETAILS_RESET });
+    };
   }, [dispatch, workId]);
 
   // quantity = 0
@@ -113,13 +119,22 @@ function Artwork() {
     }
   }, [artwork]);
 
+  // convert price to ETH
+  useEffect(() => {
+    if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
+      const convertedPrice = ethers.utils.formatEther(
+        artwork.voucher.price_wei
+      );
+      setPriceEth(convertedPrice);
+    }
+  }, [artwork]);
+
   const onAddToCart = () => {
     dispatch(addToCart(workId));
     history.push(`/cart/shippingAddress/${workId}?title=${artwork.title}`);
   };
 
   const classes = useStyles();
-
   const renderElement = () => (
     <Container maxWidth="lg">
       {artwork && artwork.price && (
@@ -256,7 +271,9 @@ function Artwork() {
                   style={{ marginTop: 30, marginBottom: 30 }}
                 >
                   <span style={{ position: 'absolute' }}>
-                    $ {artwork.price.toLocaleString()}
+                    {artwork.voucher.artwork_id
+                      ? ` Ξ  ${priceEth}`
+                      : `$ ${artwork.price.toLocaleString()}`}
                   </span>
                 </Typography>
                 {artwork.voucher.signature && (

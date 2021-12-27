@@ -1,8 +1,5 @@
-/* eslint-disable prefer-destructuring */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable no-plusplus */
 import { makeStyles } from '@mui/styles';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,18 +15,15 @@ import {
 import LoadingButton from '@mui/lab/LoadingButton';
 import Loader from '../Loader';
 import Message from '../Message';
-import {
-  fetchArtistWorks,
-  fetchUserDetails,
-  updateUserStore,
-} from '../../actions/userAction';
-import MyArtCard from './MyArtCard';
-import { DEPLOY_MY_STORE_RESET } from '../../constants/lazyFactoryConstants';
+import { fetchArtistWorks, fetchUserDetails } from '../../actions/userAction';
+import ProfileMyArtCard from './ProfileMyArtCard';
+import { DEPLOY_MY_GALLERY_RESET } from '../../constants/lazyFactoryConstants';
 import {
   fetchEthPrice,
   fetchMarketPlace,
 } from '../../actions/marketPlaceAction';
-import { deployMyStore } from '../../actions/lazyFactoryAction';
+import { deployMyGallery } from '../../actions/lazyFactoryAction';
+import { updateArtistGallery } from '../../actions/artistAction';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -52,7 +46,7 @@ function ProfileMyWorks() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [galleryName, setGalleryName] = useState('');
-  const [signerContractAddress, setSignerContractAddress] = useState('');
+  const [artistGalleryAddress, setArtistGalleryAddress] = useState('');
 
   const myWorks = useSelector((state) => state.myWorks);
   const {
@@ -61,28 +55,37 @@ function ProfileMyWorks() {
     success: successMyWork,
   } = myWorks;
 
+  const voucherDelete = useSelector((state) => state.voucherDelete);
+  const { success: successDeleteVoucher } = voucherDelete;
+
   const theMarketPlace = useSelector((state) => state.theMarketPlace);
   const { marketPlace } = theMarketPlace;
 
-  const myStore = useSelector((state) => state.myStore);
+  const backEndGallery = useSelector((state) => state.backEndGallery);
+  const { gallery, success: successBackEndGallery } = backEndGallery;
+
+  const deployGallery = useSelector((state) => state.deployGallery);
   const {
     BLOCKCHAIN,
-    loading: loadingMyStore,
-    success: successMyStore,
-    error: errorMyStore,
-  } = myStore;
+    loading: loadingDeployGallery,
+    success: successDeployGallery,
+    error: errorDeployGallery,
+  } = deployGallery;
 
   const userDetails = useSelector((state) => state.userDetails);
   const { user } = userDetails;
 
+  const myVoucher = useSelector((state) => state.myVoucher);
+  const { success: successSignature, error: errorSignature } = myVoucher;
+
   // loading button
   useEffect(() => {
-    if (loadingMyStore) {
+    if (loadingDeployGallery) {
       setIsLoading(true);
     } else {
       setIsLoading(false);
     }
-  }, [loadingMyStore]);
+  }, [loadingDeployGallery]);
 
   // disable button when form is not filled
   useEffect(() => {
@@ -97,28 +100,50 @@ function ProfileMyWorks() {
     dispatch(fetchMarketPlace());
     dispatch(fetchArtistWorks());
     dispatch(fetchEthPrice());
-  }, [dispatch]);
+  }, [dispatch, successSignature, successDeleteVoucher]);
 
   // contract address and factory
   useEffect(() => {
-    if (user && user.store_address) {
-      setSignerContractAddress(user.store_address);
-    } else if (successMyStore) {
-      setSignerContractAddress(BLOCKCHAIN.signerContract.address);
+    if (user && user.artist.gallery_address) {
+      setArtistGalleryAddress(user.artist.gallery_address);
+    } else if (user && successDeployGallery && !user.artist.gallery_address) {
+      setArtistGalleryAddress(BLOCKCHAIN.signerContract.address);
+    }
+  }, [user, successDeployGallery, successBackEndGallery]);
+
+  // update artist gallery contract if not available
+  useEffect(() => {
+    if (
+      user &&
+      user.artist &&
+      !user.artist.gallery_address &&
+      artistGalleryAddress &&
+      !successBackEndGallery
+    ) {
+      dispatch(
+        updateArtistGallery(
+          artistGalleryAddress,
+          user.artist._id,
+          BLOCKCHAIN.artistWalletAddress
+        )
+      );
+    } else if (successBackEndGallery && successDeployGallery) {
+      dispatch({ type: DEPLOY_MY_GALLERY_RESET });
       dispatch(fetchUserDetails());
     }
-  }, [successMyStore, user]);
-
-  // update user store contract if not available
-  useEffect(() => {
-    if (user && !user.store_address && signerContractAddress) {
-      dispatch(updateUserStore(signerContractAddress));
-    }
-  }, [signerContractAddress]);
+  }, [
+    dispatch,
+    user,
+    BLOCKCHAIN,
+    successDeployGallery,
+    successBackEndGallery,
+    artistGalleryAddress,
+  ]);
 
   // my Store deployment
-  const handleStoreDeployment = () => {
-    dispatch(deployMyStore(marketPlace.contract, galleryName));
+  const handleGalleryDeployment = () => {
+    dispatch({ type: DEPLOY_MY_GALLERY_RESET });
+    dispatch(deployMyGallery(marketPlace.contract, galleryName));
   };
 
   const classes = useStyles();
@@ -133,8 +158,11 @@ function ProfileMyWorks() {
         </Message>
       ) : (
         <div>
-          {user && !user.store_address ? (
+          {user && !user.artist.gallery_address ? (
             <Grid item sx={{ margin: 10, textAlign: 'center' }}>
+              <Typography sx={{ margin: 2 }}>
+                Hey, {user.artist.firstName} create your gallery to get started!
+              </Typography>
               <TextField
                 color="secondary"
                 value={galleryName}
@@ -149,7 +177,7 @@ function ProfileMyWorks() {
                 color="primary"
                 disabled={isDisabled}
                 loading={isLoading}
-                onClick={handleStoreDeployment}
+                onClick={handleGalleryDeployment}
                 sx={{ margin: 'auto', padding: 1 }}
               >
                 Create My Gallery
@@ -161,10 +189,10 @@ function ProfileMyWorks() {
                 <Typography variant="subtitle2">
                   Gallery Address:
                   <Link
-                    href={`https://rinkeby.etherscan.io/address/${signerContractAddress}`}
+                    href={`https://rinkeby.etherscan.io/address/${artistGalleryAddress}`}
                     target="blank"
                   >
-                    {signerContractAddress}
+                    {artistGalleryAddress}
                   </Link>
                 </Typography>
                 <Grid item xs={9} className={classes.root}>
@@ -175,7 +203,7 @@ function ProfileMyWorks() {
                     sx={{ paddingRight: 5 }}
                   >
                     {myWorks.works.my_artworks.map((artwork) => (
-                      <MyArtCard key={artwork._id} artworkId={artwork._id} />
+                      <ProfileMyArtCard key={artwork._id} artwork={artwork} />
                     ))}
                   </ImageList>
                 </Grid>
@@ -187,7 +215,7 @@ function ProfileMyWorks() {
                       {myWorks.works.my_artworks.map((artwork) => (
                         <Grid key={artwork._id}>
                           <Paper className={classes.paper}>
-                            <MyArtCard artworkId={artwork._id} />
+                            <ProfileMyArtCard artworkId={artwork._id} />
                           </Paper>
                         </Grid>
                       ))}
@@ -197,13 +225,15 @@ function ProfileMyWorks() {
               </Grid>
             </>
           )}
+          <Grid item xs={12} sx={{ textAlign: 'center' }}>
+            {(errorDeployGallery || errorSignature) && (
+              <Message severity="error">
+                {errorDeployGallery || errorSignature}
+              </Message>
+            )}
+          </Grid>
         </div>
       )}
-      <Grid item xs={12} sx={{ textAlign: 'center' }}>
-        {errorMyStore && (
-          <Message backError={errorMyStore} variant="filled" severity="error" />
-        )}
-      </Grid>
     </div>
   );
 }

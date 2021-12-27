@@ -1,27 +1,31 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable react/destructuring-assignment */
+import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import ImageListItem from '@mui/material/ImageListItem';
 import { Grid, Typography, Paper } from '@mui/material';
-import IconButton from '@mui/material/IconButton';
-
 import ImageListItemBar from '@mui/material/ImageListItemBar';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import LoadingButton from '@mui/lab/LoadingButton';
-import { favArtwork } from '../../actions/userAction';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { signMyItem } from '../../actions/lazyFactoryAction';
-import { fetchOneArtWork, updateArtwork } from '../../actions/artworkAction';
+import {
+  deleteVoucher,
+  fetchOneArtWork,
+  updateArtwork,
+} from '../../actions/artworkAction';
 import { SIGN_MY_ITEM_RESET } from '../../constants/lazyFactoryConstants';
 import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 
-export default function MyArtCard({ artworkId }) {
+export default function ProfileMyArtCard({ artwork }) {
   const dispatch = useDispatch();
 
-  const [signerContractAddress, setSignerContractAddress] = useState('');
+  const [artistGalleryAddress, setArtistGalleryAddress] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
+  const [priceEth, setPriceEth] = useState();
 
   const userDetails = useSelector((state) => state.userDetails);
   const { user } = userDetails;
@@ -33,9 +37,6 @@ export default function MyArtCard({ artworkId }) {
     loading: loadingSignature,
     success: successSignature,
   } = myVoucher;
-
-  const theArtwork = useSelector((state) => state.theArtwork);
-  const { artwork, success: successArtwork } = theArtwork;
 
   const artworkUpdate = useSelector((state) => state.artworkUpdate);
   const { success: successUpdateArtwork } = artworkUpdate;
@@ -61,59 +62,76 @@ export default function MyArtCard({ artworkId }) {
     }
   }, [successEthPrice]);
 
-  // contract address and factory
   useEffect(() => {
-    if (user && user.store_address) {
-      dispatch({ type: ARTWORK_UPDATE_RESET });
-      setSignerContractAddress(user.store_address);
+    if (user && user.artist.gallery_address) {
+      setArtistGalleryAddress(user.artist.gallery_address);
     }
-  }, [user]);
-
-  // fetch artwork if not success
-  useEffect(() => {
-    dispatch(fetchOneArtWork(artworkId));
-  }, [dispatch, artworkId]);
+  }, [user, artwork, successUpdateArtwork, dispatch]);
 
   useEffect(() => {
-    if (successSignature && !successUpdateArtwork) {
-      // add signature backend - storeAddress = false / walletAddress = false
+    if (
+      successSignature &&
+      !successUpdateArtwork &&
+      voucher.artworkId === artwork._id
+    ) {
+      // add signature backend - galleryAddress = false / walletAddress = false
       dispatch(
         updateArtwork(artwork, false, signerAddress, false, voucher, 'Signing')
       );
-    } else if (successUpdateArtwork) {
-      dispatch(fetchOneArtWork(artworkId));
+    } else if (
+      successUpdateArtwork &&
+      voucher &&
+      voucher.artworkId === artwork._id
+    ) {
       dispatch({ type: SIGN_MY_ITEM_RESET });
+      dispatch(fetchOneArtWork(artwork._id));
     }
   }, [successUpdateArtwork, signerAddress, successSignature, artwork]);
 
+  // convert price to ETH
+  useEffect(() => {
+    if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
+      const convertedPrice = ethers.utils.formatEther(
+        artwork.voucher.price_wei
+      );
+      setPriceEth(convertedPrice);
+    }
+  }, [artwork]);
+
   // handle signature
   const handleSignature = async () => {
-    const artworkPriceEth = artwork.price / result.ethereum.usd;
-    if (signerContractAddress) {
+    dispatch({ type: ARTWORK_UPDATE_RESET });
+    dispatch({ type: SIGN_MY_ITEM_RESET });
+
+    const artworkPriceEth = artwork.price / result.ethereum.usd; // convert dollar to ETH
+    if (artistGalleryAddress) {
       dispatch(
         signMyItem(
-          signerContractAddress,
+          artistGalleryAddress,
           artwork,
           artworkPriceEth,
+          artwork.price,
           user.firstName,
-          'tokenUri'
+          user.lastName
         )
       );
     }
   };
 
   return (
-    <Paper sx={{ border: '1px solid black' }} elevation={5}>
+    <Paper
+      sx={{ border: '1px solid black', position: 'relative' }}
+      elevation={5}
+    >
       <Grid
         sx={{
-          // marginBottom: 5,
           opacity: 0.8,
           ':hover': {
             opacity: 1,
           },
         }}
       >
-        {successArtwork && (
+        {artwork && (
           <ImageListItem style={{ color: '#666666' }}>
             <Link
               style={{ position: 'absolute', width: '100%', height: '100%' }}
@@ -134,37 +152,42 @@ export default function MyArtCard({ artworkId }) {
             </Typography>
             <Typography
               variant="subtitle2"
-              sx={{ width: '100%', margin: 'auto', textAlign: 'center' }}
+              sx={{
+                width: '100%',
+                margin: 'auto',
+                marginBottom: 5,
+                textAlign: 'center',
+              }}
             >
-              ${artwork.price.toLocaleString()}
+              {artwork.voucher.artwork_id
+                ? ` Ξ  ${priceEth}`
+                : `$ ${artwork.price.toLocaleString()}`}
             </Typography>
-            <ImageListItemBar
-              style={{ background: 'transparent', textAlign: 'center' }}
-              position="below"
-              actionIcon={
-                <LoadingButton
-                  disabled={isDisabled}
-                  loading={isLoading}
-                  size="small"
-                  onClick={() => handleSignature()}
-                  variant={
-                    !artwork.voucher.signature ? 'contained' : 'outlined'
-                  }
-                  sx={{ width: '100%' }}
-                >
-                  {!artwork.voucher.signature
-                    ? 'Sign to Sell'
-                    : 'Remove Signature'}
-                </LoadingButton>
-              }
-            />
           </ImageListItem>
         )}
       </Grid>
+      <LoadingButton
+        disabled={isDisabled}
+        loading={isLoading}
+        size="small"
+        onClick={
+          !artwork.voucher.signature
+            ? () => handleSignature()
+            : () => dispatch(deleteVoucher(artwork.voucher._id))
+        }
+        sx={{ position: 'absolute', bottom: 0, width: '100%' }}
+        variant={!artwork.voucher.signature ? 'contained' : 'outlined'}
+      >
+        {!artwork.voucher.signature ? (
+          'Sign to Sell'
+        ) : (
+          <HighlightOffIcon color="error" />
+        )}
+      </LoadingButton>
     </Paper>
   );
 }
 
-MyArtCard.propTypes = {
-  artworkId: PropTypes.number,
+ProfileMyArtCard.propTypes = {
+  artwork: PropTypes.object,
 };

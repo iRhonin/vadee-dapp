@@ -26,7 +26,7 @@ async function main() {
   const factory = await Factory.deploy(
     marketPlace.address,
     'Vadee',
-    'storeName',
+    'galleryName',
     '0x720472c8ce72c2A2D711333e064ABD3E6BbEAdd3'
   );
   await factory.deployed();

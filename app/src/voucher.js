@@ -25,25 +25,39 @@ class Voucher {
     return this.domainData;
   }
 
-  async signTransaction(artworkId, title, price, firstName, tokenUri) {
+  async signTransaction(
+    artworkId,
+    title,
+    editionNumber,
+    edition,
+    priceWei,
+    priceDollar,
+    firstName,
+    tokenUri
+  ) {
     const domain = await this.designDomain();
     // define your data types
     const types = {
       Voucher: [
         { name: 'title', type: 'string' },
         { name: 'artworkId', type: 'uint256' },
-        { name: 'price', type: 'uint256' },
+        { name: 'editionNumber', type: 'string' },
+        { name: 'edition', type: 'string' },
+        { name: 'priceWei', type: 'uint256' },
+        { name: 'priceDollar', type: 'string' },
         { name: 'tokenUri', type: 'string' },
         { name: 'content', type: 'string' },
       ],
     };
-    console.log(domain);
     const theId = parseInt(artworkId);
 
     const voucher = {
       title,
       artworkId: theId,
-      price,
+      editionNumber: editionNumber.toLocaleString(),
+      edition: edition.toLocaleString(),
+      priceWei,
+      priceDollar: priceDollar.toLocaleString(),
       tokenUri,
       content: `Hey ${firstName}, You are signing this work to be available for sale!`,
     };

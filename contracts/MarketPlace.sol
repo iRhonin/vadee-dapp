@@ -41,11 +41,11 @@ contract MarketPlace is ReentrancyGuard {
 
     event MarketItemCreated(
         uint256 indexed marketItemId,
-        address indexed lazyFactoryAddress,
+        address lazyFactoryAddress,
         uint256 indexed tokenId,
         address seller,
         address owner,
-        uint256 price,
+        uint256 indexed price,
         bool sold
     );
 
@@ -57,7 +57,7 @@ contract MarketPlace is ReentrancyGuard {
         uint256 price
     );
 
-    event Received(address, uint256);
+    event received(address, uint256);
     event fallingBack(string);
 
     // When listig an item for the first time seller sign it. Buyer mints and transferes it.
@@ -97,11 +97,11 @@ contract MarketPlace is ReentrancyGuard {
         );
     }
 
-    // purchase from market place
-    function marketItemPurchase(
+    // purchase the already minted token
+    function purchaseMarketItem(
         address lazyFactoryAddress,
         uint256 marketItemId,
-        uint256 transactionFee
+        uint256 vadeeFee
     ) public payable nonReentrant {
         uint256 price = marketItemById[marketItemId].price;
         require(msg.value == price, "Enter the artwork selling Price");
@@ -109,7 +109,7 @@ contract MarketPlace is ReentrancyGuard {
 
         uint256 amount = msg.value;
         // pay seller
-        marketItemById[marketItemId].seller.transfer(amount - transactionFee);
+        marketItemById[marketItemId].seller.transfer(amount - vadeeFee);
         IERC721(lazyFactoryAddress).transferFrom(
             address(this),
             msg.sender,
@@ -121,7 +121,7 @@ contract MarketPlace is ReentrancyGuard {
         _marketItemSold.increment();
 
         // pay Vadee
-        payable(deployerAddress).transfer(transactionFee);
+        payable(deployerAddress).transfer(vadeeFee);
 
         emit MarketItemPurchased(
             marketItemId,
@@ -153,7 +153,7 @@ contract MarketPlace is ReentrancyGuard {
 
     // to receive eth
     receive() external payable {
-        emit Received(msg.sender, msg.value);
+        emit received(msg.sender, msg.value);
     }
 
     function withdraw() public {
@@ -164,7 +164,7 @@ contract MarketPlace is ReentrancyGuard {
         receiver.transfer(balance);
     }
 
-    function fetchMyBalance() public view returns (uint256) {
-        return balanceByAddress[msg.sender];
+    function fetchMarketBalance() public view returns (uint256) {
+        return address(this).balance;
     }
 }

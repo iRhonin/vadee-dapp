@@ -1,4 +1,5 @@
 import artworksBase from '../apis/artworksBase';
+
 import {
   USER_LOGIN_REQUEST,
   USER_LOGIN_SUCCESS,
@@ -24,55 +25,7 @@ import {
   USER_ARTIST_WORKS_REQUEST,
   USER_ARTIST_WORKS_SUCCESS,
   USER_ARTIST_WORKS_FAIL,
-  USER_STORE_ADDRESS_REQUEST,
-  USER_STORE_ADDRESS_SUCCESS,
-  USER_STORE_ADDRESS_FAIL,
 } from '../constants/userConstants';
-
-export const updateUserStore = (storeAddress) => async (dispatch, getState) => {
-  try {
-    dispatch({ type: USER_STORE_ADDRESS_REQUEST });
-    const {
-      userLogin: { userInfo },
-    } = getState();
-
-    const config = {
-      headers: {
-        'Content-type': 'application/json',
-        Authorization: `Bearer ${userInfo.token}`,
-      },
-    };
-
-    // eslint-disable-next-line no-undef
-    const formData = new FormData();
-    formData.set('storeAddress', storeAddress);
-
-    const { data } = await artworksBase.put(
-      `/users/store/update/`,
-      formData,
-      config
-    );
-
-    dispatch({
-      type: USER_STORE_ADDRESS_SUCCESS,
-      payload: data,
-    });
-    // login the user with new data and update local storage
-    dispatch({
-      type: USER_LOGIN_SUCCESS,
-      payload: data,
-    });
-  } catch (e) {
-    // check for generic and custom message to return using ternary statement
-    dispatch({
-      type: USER_STORE_ADDRESS_FAIL,
-      payload:
-        e.response && e.response.data.detail
-          ? e.response.data.detail
-          : e.message,
-    });
-  }
-};
 
 export const login = (username, password) => async (dispatch) => {
   try {
@@ -100,7 +53,7 @@ export const login = (username, password) => async (dispatch) => {
     dispatch({
       type: USER_LOGIN_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -153,7 +106,7 @@ export const register =
       dispatch({
         type: USER_REGISTER_FAIL,
         payload:
-          e.response && e.response.data.detail
+          e.response && e.response.data.details
             ? e.response.data.details
             : e.message,
       });
@@ -185,7 +138,7 @@ export const fetchUserDetails = () => async (dispatch, getState) => {
     dispatch({
       type: USER_DETAILS_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -241,7 +194,7 @@ export const updateUserProfile = (user) => async (dispatch, getState) => {
     dispatch({
       type: USER_UPDATE_PROFILE_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -277,7 +230,7 @@ export const favArtwork = (artworkId) => async (dispatch, getState) => {
     dispatch({
       type: USER_FAVORITE_ARTWORK_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });
@@ -312,7 +265,7 @@ export const fetchFavArtworkList = () => async (dispatch, getState) => {
     dispatch({
       type: USER_FAVORITE_ARTWORK_LIST_FAIL,
       payload:
-        e.response && e.response.data.detail
+        e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
     });

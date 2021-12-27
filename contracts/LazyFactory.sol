@@ -22,13 +22,16 @@ contract LazyFactory is
     bytes32 public constant SIGNER_ROLE = keccak256("SIGNER_ROLE");
     bytes32 constant VOUCHER_TYPEHASH =
         keccak256(
-            "Voucher(string title,uint256 artworkId,uint256 price,string tokenUri,string content)"
+            "Voucher(string title,uint256 artworkId,string editionNumber,string edition,uint256 priceWei,string priceDollar,string tokenUri,string content)"
         );
 
     struct Voucher {
         string title;
         uint256 artworkId;
-        uint256 price;
+        string editionNumber;
+        string edition;
+        uint256 priceWei;
+        string priceDollar;
         string tokenUri;
         string content;
         bytes signature;
@@ -50,18 +53,11 @@ contract LazyFactory is
     function redeem(
         address buyer,
         Voucher calldata voucher,
-        uint256 transactionFee
+        uint256 vadeeFee
     ) public payable nonReentrant returns (uint256) {
         address artist = _verify(voucher);
-        console.log(voucher.title);
-        console.log(voucher.artworkId);
-        console.log(voucher.price);
-        console.log(msg.value);
-        console.log(voucher.content);
-        console.log(artist);
-        console.log(buyer);
 
-        require(msg.value == voucher.price, "Enter the correct price");
+        require(msg.value == voucher.priceWei, "Enter the correct price");
         require(artist != buyer, "You can not purchase your own token");
         require(hasRole(SIGNER_ROLE, artist), "Invalid Signature");
 
@@ -73,8 +69,9 @@ contract LazyFactory is
         _transfer(artist, buyer, voucher.artworkId);
 
         uint256 amount = msg.value;
-        theMarketPlace.transfer(transactionFee);
-        payable(artist).transfer(amount - transactionFee);
+        payable(artist).transfer(amount - vadeeFee);
+        payable(theMarketPlace).transfer(vadeeFee);
+
 
         return voucher.artworkId;
     }
@@ -88,7 +85,10 @@ contract LazyFactory is
                         VOUCHER_TYPEHASH,
                         keccak256(bytes(voucher.title)),
                         voucher.artworkId,
-                        voucher.price,
+                        keccak256(bytes(voucher.editionNumber)),
+                        keccak256(bytes(voucher.edition)),
+                        voucher.priceWei,
+                        keccak256(bytes(voucher.priceDollar)),
                         keccak256(bytes(voucher.tokenUri)),
                         keccak256(bytes(voucher.content))
                     )
@@ -99,6 +99,7 @@ contract LazyFactory is
     // returns signer address
     function _verify(Voucher calldata voucher) internal view returns (address) {
         bytes32 digest = _hash(voucher);
+
         return ECDSA.recover(digest, voucher.signature);
     }
 

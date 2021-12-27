@@ -3,15 +3,25 @@ import React, { useState } from 'react';
 import { Tab, Grid, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import TabContext from '@mui/lab/TabContext';
+import { useDispatch, useSelector } from 'react-redux';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import ProfileForm from '../components/profile/ProfileForm';
 import ProfileFavorite from '../components/profile/ProfileFavorite';
 import ProfileMyWorks from '../components/profile/ProfileMyWorks';
+import ProfileAdminTab from '../components/profile/ProfileAdminTab';
 // import AccountUserOrders from '../components/profile/ProfileOrders';
 
 export default function UserProfile() {
   const [value, setValue] = useState('1');
+
+  const userDetails = useSelector((state) => state.userDetails);
+  const {
+    error: errorUserDetails,
+    loading: loadingUserDetails,
+    success: successUserDetails,
+    user,
+  } = userDetails;
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -58,6 +68,7 @@ export default function UserProfile() {
                   <Tab label="My Artworks" value="2" />
                   <Tab label="My orders" disabled value="3" />
                   <Tab label="Saves & Follows" value="4" />
+                  {user && user.isAdmin && <Tab label="ADMIN" value="5" />}
                 </TabList>
               </Box>
 
@@ -71,6 +82,9 @@ export default function UserProfile() {
                 <TabPanel value="3">{/* <AccountUserOrders /> */}</TabPanel>
                 <TabPanel value="4">
                   <ProfileFavorite />
+                </TabPanel>
+                <TabPanel value="5">
+                  <ProfileAdminTab />
                 </TabPanel>
               </Box>
             </TabContext>

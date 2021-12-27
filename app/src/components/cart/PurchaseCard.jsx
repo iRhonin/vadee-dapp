@@ -7,8 +7,9 @@ import { useSelector, useDispatch } from 'react-redux';
 import Grid from '@mui/material/Grid';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { useParams } from 'react-router';
-import { fetchMarketFee } from '../../actions/marketPlaceAction';
+import { fetchEthPrice, fetchMarketFee } from '../../actions/marketPlaceAction';
 import { fetchOneArtWork } from '../../actions/artworkAction';
+import { dollarToEth, weiToEth } from '../../converter';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -25,9 +26,12 @@ export default function PurchaseCard() {
   const { workId } = useParams();
   const dispatch = useDispatch();
 
-  const [shippingPrice, setShippingPrice] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(0);
-  const [serviceFee, setServiceFee] = useState(0);
+  const [shippingPrice, setShippingPrice] = useState();
+  const [totalPrice, setTotalPrice] = useState();
+  const [serviceFee, setServiceFee] = useState();
+  const [shippingEth, setShippingEth] = useState();
+  const [priceEth, setPriceEth] = useState();
+  const [totalPriceEth, setTotalPriceEth] = useState();
 
   const theCart = useSelector((state) => state.theCart);
   const { cartItems } = theCart;
@@ -35,26 +39,68 @@ export default function PurchaseCard() {
   const marketFee = useSelector((state) => state.marketFee);
   const { fee, success: successMarketFee } = marketFee;
 
+  const ethPrice = useSelector((state) => state.ethPrice);
+  const { result, success: successEthPrice } = ethPrice;
+
+  const theArtwork = useSelector((state) => state.theArtwork);
+  const { artwork } = theArtwork;
+
+  // total in dollar
   useEffect(() => {
     if (successMarketFee && cartItems[0]) {
       setServiceFee(fee);
       setShippingPrice(0);
-      setTotalPrice(cartItems[0].price + shippingPrice + serviceFee);
+      setTotalPrice(cartItems[0].price + shippingPrice);
     }
-    console.log(serviceFee);
   }, [cartItems, shippingPrice, serviceFee, successMarketFee, fee]);
 
   useEffect(() => {
     if (cartItems && cartItems[0] && workId) {
       dispatch(fetchMarketFee(cartItems[0].price));
       dispatch(fetchOneArtWork(workId));
+      dispatch(fetchEthPrice());
     }
   }, [cartItems, dispatch, workId]);
+
+  // convert price
+  useEffect(() => {
+    if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
+      const convertedPrice = weiToEth(artwork.voucher.price_wei);
+      setPriceEth(convertedPrice);
+    }
+  }, [artwork]);
+
+  // shipping
+  useEffect(() => {
+    if (!shippingEth) {
+      setShippingPrice(100);
+    }
+  }, [shippingEth]);
+
+  // convert shipping
+  useEffect(() => {
+    if (shippingPrice && !shippingEth) {
+      console.log('shippingPrice');
+      const convertedPrice = dollarToEth(shippingPrice, result.ethereum.usd);
+      setShippingEth(convertedPrice);
+    }
+  }, [shippingPrice, shippingEth, result]);
+
+  // convert price
+  useEffect(() => {
+    if (priceEth && shippingEth && successEthPrice) {
+      console.log('now');
+      setTotalPriceEth(parseFloat(priceEth) + parseFloat(shippingEth));
+    }
+  }, [priceEth, shippingEth, successEthPrice]);
 
   const classes = useStyles();
   return (
     <>
-      {!cartItems[0] || !successMarketFee || !serviceFee ? null : (
+      {!cartItems[0] ||
+      !artwork.voucher ||
+      !successMarketFee ||
+      !successEthPrice ? null : (
         <Paper className={classes.root} elevation={0} variant="outlined" square>
           <Grid
             container
@@ -95,42 +141,42 @@ export default function PurchaseCard() {
                 }}
               >
                 <Grid container sx={{ marginTop: 1 }}>
-                  <Grid item xs={6}>
+                  <Grid item xs>
                     <Typography variant="body1">Price</Typography>
                   </Grid>
-                  <Grid item xs>
+                  <Grid item md={8}>
                     <Typography variant="body2">
-                      {cartItems[0].price.toLocaleString()}
+                      {artwork.voucher.artwork_id && `Ξ  ${priceEth}`}
                     </Typography>
                   </Grid>
                 </Grid>
                 <Grid container sx={{ marginTop: 1 }}>
-                  <Grid item xs={6}>
+                  <Grid item xs>
                     <Typography variant="body1">Shipping</Typography>
                   </Grid>
-                  <Grid item xs>
+                  <Grid item md={8}>
                     <Typography variant="body2">
-                      {shippingPrice.toLocaleString()}
+                      {artwork.voucher.artwork_id && `Ξ  ${shippingEth}`}
                     </Typography>
                   </Grid>
                 </Grid>
-                <Grid container sx={{ marginTop: 1 }}>
+                {/* <Grid container sx={{ marginTop: 1 }}>
                   <Grid item xs={6}>
                     <Typography variant="body1">Service fee</Typography>
                   </Grid>
                   <Grid item xs>
                     <Typography variant="body2">
-                      {serviceFee.toLocaleString()}
+                      {artwork.voucher.artwork_id && `Ξ  ${feeEth}`}
                     </Typography>
                   </Grid>
-                </Grid>
+                </Grid> */}
                 <Grid container sx={{ marginTop: 1 }}>
-                  <Grid item xs={6}>
+                  <Grid item xs>
                     <Typography variant="body1">Total</Typography>
                   </Grid>
-                  <Grid item xs>
+                  <Grid item md={8}>
                     <Typography variant="body2">
-                      {totalPrice.toLocaleString()}
+                      {artwork.voucher.artwork_id && `Ξ  ${totalPriceEth}`}
                     </Typography>
                   </Grid>
                 </Grid>

@@ -120,8 +120,10 @@ export const signMyItem =
       if (signerAddress === artwork.artist.wallet_address) {
         const theSignature = new Voucher({ contract: signerContract, signer });
 
+        console.log(artworkPriceEth);
+
         const priceInWei = ethers.utils.parseUnits(
-          artworkPriceEth.toFixed(4),
+          artworkPriceEth,
           'ether',
           decimalPlaces
         );
@@ -177,7 +179,7 @@ export const mintAndRedeem =
       );
 
       const fee = ethers.utils.parseUnits(
-        parseInt(data.transaction_fee_ether).toFixed(6),
+        parseInt(data.transaction_fee_ether).toFixed(5),
         'ether'
       );
 

@@ -147,7 +147,7 @@ function CartReview({ setTabValue, formValues }) {
                         dispatch(
                           mintAndRedeem(
                             artwork._id,
-                            artwork.artist.gallery_address,
+                            artwork.user.gallery_address,
                             artwork.voucher,
                             artwork.price
                           )

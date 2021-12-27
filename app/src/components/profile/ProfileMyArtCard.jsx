@@ -1,10 +1,8 @@
 /* eslint-disable no-plusplus */
 /* eslint-disable react/destructuring-assignment */
-import { ethers } from 'ethers';
 import React, { useEffect, useState } from 'react';
 import ImageListItem from '@mui/material/ImageListItem';
 import { Grid, Typography, Paper } from '@mui/material';
-import ImageListItemBar from '@mui/material/ImageListItemBar';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
@@ -18,6 +16,7 @@ import {
 } from '../../actions/artworkAction';
 import { SIGN_MY_ITEM_RESET } from '../../constants/lazyFactoryConstants';
 import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
+import { dollarToEth, weiToEth } from '../../converter';
 
 export default function ProfileMyArtCard({ artwork }) {
   const dispatch = useDispatch();
@@ -91,9 +90,7 @@ export default function ProfileMyArtCard({ artwork }) {
   // convert price to ETH
   useEffect(() => {
     if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
-      const convertedPrice = ethers.utils.formatEther(
-        artwork.voucher.price_wei
-      );
+      const convertedPrice = weiToEth(artwork.voucher.price_wei);
       setPriceEth(convertedPrice);
     }
   }, [artwork]);
@@ -103,13 +100,16 @@ export default function ProfileMyArtCard({ artwork }) {
     dispatch({ type: ARTWORK_UPDATE_RESET });
     dispatch({ type: SIGN_MY_ITEM_RESET });
 
-    const artworkPriceEth = artwork.price / result.ethereum.usd; // convert dollar to ETH
+    const convertedPrice = await dollarToEth(
+      artwork.price,
+      result.ethereum.usd
+    );
     if (artistGalleryAddress) {
       dispatch(
         signMyItem(
           artistGalleryAddress,
           artwork,
-          artworkPriceEth,
+          convertedPrice,
           artwork.price,
           user.firstName,
           user.lastName

@@ -45,10 +45,11 @@ import {
 } from './lazyFactoryReducer.js';
 import {
   ethPriceReducer,
-  MarketBalanceReducer,
+  marketBalanceReducer,
   marketPlaceDeployReducer,
   marketPlaceFeeReducer,
   marketPlaceReducer,
+  marketWithdrawReducer,
 } from './marketPlaceReducer.js';
 
 export default combineReducers({
@@ -86,9 +87,10 @@ export default combineReducers({
   marketPlaceDeployment: marketPlaceDeployReducer,
   marketFee: marketPlaceFeeReducer,
   theMarketPlace: marketPlaceReducer,
-  marketPlaceBalance: MarketBalanceReducer,
+  marketPlaceBalance: marketBalanceReducer,
+  marketWithdraw: marketWithdrawReducer,
   deployGallery: galleryDeployReducer,
   backEndGallery: artistGalleryReducer,
-  buyAndMint: mintAndRedeemReducer,
+  redeemAndMint: mintAndRedeemReducer,
   ethPrice: ethPriceReducer,
 });

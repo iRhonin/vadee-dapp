@@ -11,12 +11,6 @@ contract MarketPlace is ReentrancyGuard {
     Counters.Counter private _marketItemId;
     Counters.Counter private _marketItemSold;
 
-    address payable deployerAddress;
-
-    constructor() {
-        deployerAddress = payable(msg.sender);
-    }
-
     struct MarketItem {
         uint256 marketItemId;
         address lazyFactoryAddress;
@@ -59,6 +53,12 @@ contract MarketPlace is ReentrancyGuard {
 
     event received(address, uint256);
     event fallingBack(string);
+
+    address payable deployerAddress;
+
+    constructor() {
+        deployerAddress = payable(msg.sender);
+    }
 
     // When listig an item for the first time seller sign it. Buyer mints and transferes it.
     // After token is minted it should be added to market place to be traded furthur.
@@ -157,10 +157,10 @@ contract MarketPlace is ReentrancyGuard {
     }
 
     function withdraw() public {
+        require(msg.sender == deployerAddress, "Only deployer can withdraw :)");
         address payable receiver = payable(msg.sender);
-        uint256 balance = balanceByAddress[receiver];
-        // zero account before transfer to prevent re-entrancy attack
-        balanceByAddress[receiver] = 0;
+
+        uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
 

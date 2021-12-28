@@ -68,24 +68,10 @@ export default function ProfileMyArtCard({ artwork }) {
   }, [user, artwork, successUpdateArtwork, dispatch]);
 
   useEffect(() => {
-    if (
-      successSignature &&
-      !successUpdateArtwork &&
-      voucher.artworkId === artwork._id
-    ) {
-      // add signature backend - galleryAddress = false / walletAddress = false
-      dispatch(
-        updateArtwork(artwork, false, signerAddress, false, voucher, 'Signing')
-      );
-    } else if (
-      successUpdateArtwork &&
-      voucher &&
-      voucher.artworkId === artwork._id
-    ) {
-      dispatch({ type: SIGN_MY_ITEM_RESET });
+    if (successSignature && voucher.artworkId === artwork._id) {
       dispatch(fetchOneArtWork(artwork._id));
     }
-  }, [successUpdateArtwork, signerAddress, successSignature, artwork]);
+  }, [dispatch, successSignature, artwork, voucher]);
 
   // convert price to ETH
   useEffect(() => {
@@ -97,6 +83,8 @@ export default function ProfileMyArtCard({ artwork }) {
 
   // handle signature
   const handleSignature = async () => {
+    console.log(artwork);
+
     dispatch({ type: ARTWORK_UPDATE_RESET });
     dispatch({ type: SIGN_MY_ITEM_RESET });
 
@@ -171,7 +159,7 @@ export default function ProfileMyArtCard({ artwork }) {
         loading={isLoading}
         size="small"
         onClick={
-          !artwork.voucher.signature
+          artwork && !artwork.voucher.signature
             ? () => handleSignature()
             : () => dispatch(deleteVoucher(artwork.voucher._id))
         }

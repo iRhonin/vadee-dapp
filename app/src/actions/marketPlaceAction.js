@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import { ethers } from 'ethers';
 import artworksBase, { gecko } from '../apis/artworksBase';
 import MarketPlace from '../build/contracts/artifacts/contracts/MarketPlace.sol/MarketPlace.json';
@@ -20,6 +21,9 @@ import {
   MARKET_FEE_REQUEST,
   MARKET_FEE_SUCCESS,
   MARKET_FEE_FAIL,
+  MARKET_WITHDRAW_REQUEST,
+  MARKET_WITHDRAW_SUCCESS,
+  MARKET_WITHDRAW_FAIL,
 } from '../constants/marketPlaceConstants';
 
 export const deployMarketPlace = () => async (dispatch, getState) => {
@@ -179,7 +183,6 @@ export const createMarketSell =
       );
 
       const marketPlaceContract = marketPlaceFactory.attach(marketAddress);
-
       const sellingPrice = ethers.utils.parseUnits(price.toString(), 'ether');
 
       const transaction = await marketPlaceContract.createMarketSell(
@@ -236,6 +239,40 @@ export const fetchEthPrice = () => async (dispatch) => {
         e.response && e.response.data.details
           ? e.response.data.details
           : e.message,
+    });
+  }
+};
+
+export const marketWithdrawAll = (marketAddress) => async (dispatch) => {
+  try {
+    dispatch({ type: MARKET_WITHDRAW_REQUEST });
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    const signerFactory = new ethers.ContractFactory(
+      MarketPlace.abi,
+      MarketPlace.bytecode,
+      signer
+    );
+
+    const signerContract = await signerFactory.attach(marketAddress);
+    const withdraw = await signerContract.withdraw();
+
+    dispatch({
+      type: MARKET_WITHDRAW_SUCCESS,
+      payload: withdraw,
+    });
+  } catch (e) {
+    console.log('problem withdrawing: ');
+    console.log({ e });
+    dispatch({
+      type: MARKET_WITHDRAW_FAIL,
+      payload: e.error
+        ? e.error.message
+        : e.response && e.response.data.details
+        ? e.response.data.details
+        : e.message,
     });
   }
 };

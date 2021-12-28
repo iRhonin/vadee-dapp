@@ -8,8 +8,10 @@ import { fetchUserDetails } from '../../actions/userAction';
 import Message from '../Message';
 import Loader from '../Loader';
 import { connectWallet, mintAndRedeem } from '../../actions/lazyFactoryAction';
-import { fetchOneArtWork } from '../../actions/artworkAction';
+import { fetchOneArtWork, updateArtwork } from '../../actions/artworkAction';
 import { fetchEthPrice } from '../../actions/marketPlaceAction';
+import { MINT_AND_REDEEM_RESET } from '../../constants/lazyFactoryConstants';
+import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 
 function CartReview({ setTabValue, formValues }) {
   const dispatch = useDispatch();
@@ -34,12 +36,16 @@ function CartReview({ setTabValue, formValues }) {
     error: errorWallet,
   } = walletConnection;
 
-  const buyAndMint = useSelector((state) => state.buyAndMint);
+  const redeemAndMint = useSelector((state) => state.redeemAndMint);
   const {
-    purchased,
-    error: errorMintAndBuy,
-    loading: loadingMintAndBuy,
-  } = buyAndMint;
+    redeemerAddress,
+    error: errorRedeemAndMint,
+    loading: loadingRedeemAndMint,
+    success: successRedeemAndMint,
+  } = redeemAndMint;
+
+  const artworkUpdate = useSelector((state) => state.artworkUpdate);
+  const { success: successUpdateArtwork } = artworkUpdate;
 
   const theCart = useSelector((state) => state.theCart);
   const { cartItems } = theCart;
@@ -68,9 +74,28 @@ function CartReview({ setTabValue, formValues }) {
     });
   }, [dispatch]);
 
+  useEffect(() => {
+    if (successUpdateArtwork && successRedeemAndMint) {
+      dispatch(fetchOneArtWork(artwork._id));
+    }
+  }, [successUpdateArtwork, successRedeemAndMint, artwork]);
+
   // edit
   const onEdit = () => {
     setTabValue('1');
+  };
+
+  // mint and buy
+  const mintTheSignature = () => {
+    dispatch({ type: ARTWORK_UPDATE_RESET });
+    dispatch(
+      mintAndRedeem(
+        artwork._id,
+        artwork.artist.gallery_address,
+        artwork.voucher,
+        artwork.price
+      )
+    );
   };
 
   const userAccountStart = wallet ? wallet.slice(0, 6) : null;
@@ -137,21 +162,13 @@ function CartReview({ setTabValue, formValues }) {
               <LoadingButton
                 variant="custom"
                 disabled={isDisabled}
-                loading={loadingMintAndBuy}
+                loading={loadingRedeemAndMint}
                 color="primary"
                 sx={{ width: '100%' }}
                 onClick={
                   !successWallet
                     ? () => dispatch(connectWallet())
-                    : () =>
-                        dispatch(
-                          mintAndRedeem(
-                            artwork._id,
-                            artwork.user.gallery_address,
-                            artwork.voucher,
-                            artwork.price
-                          )
-                        )
+                    : () => mintTheSignature()
                 }
               >
                 Purchase by
@@ -175,9 +192,9 @@ function CartReview({ setTabValue, formValues }) {
           </Grid>
         </Grid>
       </Paper>
-      {(errorUserDetails || errorWallet || errorMintAndBuy) && (
+      {(errorUserDetails || errorWallet || errorRedeemAndMint) && (
         <Message severity="error">
-          {errorUserDetails || errorWallet || errorMintAndBuy}
+          {errorUserDetails || errorWallet || errorRedeemAndMint}
         </Message>
       )}
       {loadingUserDetails && <Loader />}

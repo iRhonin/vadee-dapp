@@ -6,7 +6,9 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import {
   fetchMarketBalance,
   fetchMarketPlace,
+  marketWithdrawAll,
 } from '../../actions/marketPlaceAction';
+import Message from '../Message';
 
 const ProfileAdminTab = () => {
   const dispatch = useDispatch();
@@ -19,7 +21,14 @@ const ProfileAdminTab = () => {
   const { marketPlace, loading: loadingMarketPlace } = theMarketPlace;
 
   const marketPlaceBalance = useSelector((state) => state.marketPlaceBalance);
-  const { marketBalance, loading: loadingMarketBalance } = marketPlaceBalance;
+  const {
+    marketBalance,
+    loading: loadingMarketBalance,
+    error: errorBalance,
+  } = marketPlaceBalance;
+
+  const marketWithdraw = useSelector((state) => state.marketWithdraw);
+  const { error: errorWithdraw } = marketWithdraw;
 
   useEffect(() => {
     dispatch(fetchMarketPlace());
@@ -42,19 +51,34 @@ const ProfileAdminTab = () => {
         </Grid>
       ) : (
         <Grid>
-          <LoadingButton
-            variant="contained"
-            color="primary"
-            disabled={isDisabled}
-            loading={isLoading}
-            onClick={() => dispatch(fetchMarketBalance(marketPlace.contract))}
-            sx={{ margin: 'auto', padding: 1 }}
-          >
-            {marketPlaceBalance && marketPlaceBalance.marketBalance
-              ? marketPlaceBalance.marketBalance
-              : 'MarketPlace Balance'}
-          </LoadingButton>
+          <Grid>
+            <LoadingButton
+              variant="contained"
+              color="primary"
+              disabled={isDisabled}
+              loading={isLoading}
+              onClick={() => dispatch(fetchMarketBalance(marketPlace.contract))}
+              sx={{ margin: 'auto', padding: 1 }}
+            >
+              {marketPlaceBalance ? marketBalance : 'MarketPlace Balance'}
+            </LoadingButton>
+          </Grid>
+          <Grid>
+            <LoadingButton
+              variant="contained"
+              color="primary"
+              disabled={isDisabled}
+              loading={isLoading}
+              onClick={() => dispatch(marketWithdrawAll(marketPlace.contract))}
+              sx={{ margin: 'auto', padding: 1 }}
+            >
+              Withdraw
+            </LoadingButton>
+          </Grid>
         </Grid>
+      )}
+      {(errorBalance || errorWithdraw) && (
+        <Message severity="error">{errorBalance || errorWithdraw}</Message>
       )}
     </Grid>
   );

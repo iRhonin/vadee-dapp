@@ -79,12 +79,12 @@ export default function PurchaseCard() {
 
   // convert shipping
   useEffect(() => {
-    if (shippingPrice && !shippingEth) {
+    if (shippingPrice && !shippingEth && successEthPrice) {
       console.log('shippingPrice');
       const convertedPrice = dollarToEth(shippingPrice, result.ethereum.usd);
       setShippingEth(convertedPrice);
     }
-  }, [shippingPrice, shippingEth, result]);
+  }, [shippingPrice, shippingEth, successEthPrice, result]);
 
   // convert price
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function PurchaseCard() {
                   </Grid>
                   <Grid item md={8}>
                     <Typography variant="body2">
-                      {artwork.voucher.artwork_id && `Ξ  ${totalPriceEth}`}
+                      {totalPriceEth && `Ξ  ${totalPriceEth.toFixed(4)}`}
                     </Typography>
                   </Grid>
                 </Grid>

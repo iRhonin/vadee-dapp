@@ -38,6 +38,9 @@ import {
   MARKET_FEE_REQUEST,
   MARKET_FEE_SUCCESS,
   MARKET_FEE_FAIL,
+  MARKET_WITHDRAW_REQUEST,
+  MARKET_WITHDRAW_SUCCESS,
+  MARKET_WITHDRAW_FAIL,
   //   MY_PURCHASED_NFT_FAIL,
   //   MY_PURCHASED_NFT_REQUEST,
   //   MY_PURCHASED_NFT_SUCCESS,
@@ -139,7 +142,7 @@ export const walletConnectionReducer = (state = {}, action) => {
   }
 };
 
-export const MarketBalanceReducer = (state = {}, action) => {
+export const marketBalanceReducer = (state = {}, action) => {
   switch (action.type) {
     case MARKET_BALANCE_REQUEST:
       return {
@@ -154,6 +157,30 @@ export const MarketBalanceReducer = (state = {}, action) => {
         marketBalance: action.payload,
       };
     case MARKET_BALANCE_FAIL:
+      return {
+        loading: false,
+        error: action.payload,
+      };
+    default:
+      return state;
+  }
+};
+
+export const marketWithdrawReducer = (state = {}, action) => {
+  switch (action.type) {
+    case MARKET_WITHDRAW_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        success: false,
+      };
+    case MARKET_WITHDRAW_SUCCESS:
+      return {
+        loading: false,
+        success: true,
+        result: action.payload,
+      };
+    case MARKET_WITHDRAW_FAIL:
       return {
         loading: false,
         error: action.payload,

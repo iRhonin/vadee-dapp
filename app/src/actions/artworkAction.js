@@ -81,7 +81,7 @@ export const fetchCategories = () => async (dispatch) => {
 };
 
 export const updateArtwork =
-  (artwork, galleryAddress, sellerAddress, buyerAddress, voucher, action) =>
+  (artworkId, galleryAddress, sellerAddress, buyerAddress, voucher, action) =>
   async (dispatch, getState) => {
     try {
       dispatch({ type: ARTWORK_UPDATE_REQUEST });
@@ -114,20 +114,18 @@ export const updateArtwork =
       }
       // Option Redeem and Mint: update product when mint the product
       else if (action === 'RedeemAndMint') {
-        formData.append('artworkId', artwork._id);
-        formData.append('sellerAddress', sellerAddress);
-        formData.append('buyerAddress', buyerAddress);
+        formData.append('tokenId', artworkId);
         formData.append('galleryAddress', galleryAddress);
       }
       // Option Add to market: create a market sell
       else if (action === 'MarketPlace') {
-        formData.append('artworkId', artwork._id);
+        formData.append('artworkId', artworkId);
         formData.append('walletAddress', sellerAddress); // seller
         formData.append('galleryAddress', galleryAddress);
       }
 
       const { data } = await artworksBase.put(
-        `/artworks/update/${artwork._id}/${action}/`,
+        `/artworks/update/${artworkId}/${action}/`,
         formData,
         config
       );

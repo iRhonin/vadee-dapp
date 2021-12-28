@@ -23,7 +23,6 @@ import {
   fetchMarketPlace,
 } from '../../actions/marketPlaceAction';
 import { deployMyGallery } from '../../actions/lazyFactoryAction';
-import { updateArtistGallery } from '../../actions/artistAction';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -61,12 +60,8 @@ function ProfileMyWorks() {
   const theMarketPlace = useSelector((state) => state.theMarketPlace);
   const { marketPlace } = theMarketPlace;
 
-  const backEndGallery = useSelector((state) => state.backEndGallery);
-  const { gallery, success: successBackEndGallery } = backEndGallery;
-
   const deployGallery = useSelector((state) => state.deployGallery);
   const {
-    BLOCKCHAIN,
     loading: loadingDeployGallery,
     success: successDeployGallery,
     error: errorDeployGallery,
@@ -106,44 +101,23 @@ function ProfileMyWorks() {
   useEffect(() => {
     if (user && user.artist.gallery_address) {
       setArtistGalleryAddress(user.artist.gallery_address);
-    } else if (user && successDeployGallery && !user.artist.gallery_address) {
-      setArtistGalleryAddress(BLOCKCHAIN.signerContract.address);
     }
-  }, [user, successDeployGallery, successBackEndGallery]);
+  }, [user, successDeployGallery]);
 
-  // update artist gallery contract if not available
+  // update artist
   useEffect(() => {
-    if (
-      user &&
-      user.artist &&
-      !user.artist.gallery_address &&
-      artistGalleryAddress &&
-      !successBackEndGallery
-    ) {
-      dispatch(
-        updateArtistGallery(
-          artistGalleryAddress,
-          user.artist._id,
-          BLOCKCHAIN.artistWalletAddress
-        )
-      );
-    } else if (successBackEndGallery && successDeployGallery) {
-      dispatch({ type: DEPLOY_MY_GALLERY_RESET });
+    if (successDeployGallery) {
       dispatch(fetchUserDetails());
     }
-  }, [
-    dispatch,
-    user,
-    BLOCKCHAIN,
-    successDeployGallery,
-    successBackEndGallery,
-    artistGalleryAddress,
-  ]);
+  }, [dispatch, successDeployGallery]);
 
-  // my Store deployment
+  // my gallery deployment
   const handleGalleryDeployment = () => {
+    console.log(user.artist._id);
     dispatch({ type: DEPLOY_MY_GALLERY_RESET });
-    dispatch(deployMyGallery(marketPlace.contract, galleryName));
+    dispatch(
+      deployMyGallery(marketPlace.contract, galleryName, user.artist._id)
+    );
   };
 
   const classes = useStyles();
@@ -215,7 +189,10 @@ function ProfileMyWorks() {
                       {myWorks.works.my_artworks.map((artwork) => (
                         <Grid key={artwork._id}>
                           <Paper className={classes.paper}>
-                            <ProfileMyArtCard artworkId={artwork._id} />
+                            <ProfileMyArtCard
+                              key={artwork._id}
+                              artwork={artwork}
+                            />
                           </Paper>
                         </Grid>
                       ))}

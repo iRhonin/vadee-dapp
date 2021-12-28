@@ -83,7 +83,6 @@ export const updateArtistGallery =
         },
       };
 
-      // eslint-disable-next-line no-undef
       const formData = new FormData();
       formData.set('galleryAddress', galleryAddress);
       formData.set('artistWalletAddress', artistWalletAddress);

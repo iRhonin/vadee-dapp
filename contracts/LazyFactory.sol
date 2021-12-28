@@ -37,6 +37,8 @@ contract LazyFactory is
         bytes signature;
     }
 
+    event RedeemedAndMinted(uint256 indexed tokenId);
+
     mapping(address => uint256) private balanceByAddress;
 
     constructor(
@@ -54,7 +56,7 @@ contract LazyFactory is
         address buyer,
         Voucher calldata voucher,
         uint256 vadeeFee
-    ) public payable nonReentrant returns (uint256) {
+    ) public payable nonReentrant {
         address artist = _verify(voucher);
 
         require(msg.value == voucher.priceWei, "Enter the correct price");
@@ -72,8 +74,7 @@ contract LazyFactory is
         payable(artist).transfer(amount - vadeeFee);
         payable(theMarketPlace).transfer(vadeeFee);
 
-
-        return voucher.artworkId;
+        emit RedeemedAndMinted(voucher.artworkId);
     }
 
     function _hash(Voucher calldata voucher) internal view returns (bytes32) {

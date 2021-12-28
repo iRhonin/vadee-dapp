@@ -3,9 +3,9 @@ import {
   WALLET_CONNECT_FAIL,
   WALLET_CONNECT_REQUEST,
   WALLET_CONNECT_SUCCESS,
-  BUYER_MINT_AND_REDEEM_FAIL,
-  BUYER_MINT_AND_REDEEM_REQUEST,
-  BUYER_MINT_AND_REDEEM_SUCCESS,
+  MINT_AND_REDEEM_FAIL,
+  MINT_AND_REDEEM_REQUEST,
+  MINT_AND_REDEEM_SUCCESS,
   DEPLOY_MY_GALLERY_FAIL,
   DEPLOY_MY_GALLERY_REQUEST,
   DEPLOY_MY_GALLERY_SUCCESS,
@@ -16,6 +16,8 @@ import {
 import artworksBase from '../apis/artworksBase';
 import { Voucher } from '../voucher';
 import LazyFactory from '../build/contracts/artifacts/contracts/LazyFactory.sol/LazyFactory.json';
+import { updateArtwork } from './artworkAction';
+import { updateArtistGallery } from './artistAction';
 
 const decimalPlaces = 2;
 
@@ -42,7 +44,7 @@ export const connectWallet = () => async (dispatch) => {
 };
 
 export const deployMyGallery =
-  (marketPlaceAddress, galleryName) => async (dispatch) => {
+  (marketPlaceAddress, galleryName, artistId) => async (dispatch) => {
     let signerContract;
     let signerFactory;
     try {
@@ -70,6 +72,13 @@ export const deployMyGallery =
         artistWalletAddress
       );
       await signerContract.deployTransaction.wait(); // loading before confirmed transaction
+
+      const galleryAddress = await signerContract.address;
+      console.log(galleryAddress);
+
+      dispatch(
+        updateArtistGallery(galleryAddress, artistId, artistWalletAddress)
+      );
 
       dispatch({
         type: DEPLOY_MY_GALLERY_SUCCESS,
@@ -139,6 +148,10 @@ export const signMyItem =
           'tokenUri'
         );
 
+        dispatch(
+          updateArtwork(artwork._id, false, false, false, voucher, 'Signing')
+        );
+
         dispatch({
           type: SIGN_MY_ITEM_SUCCESS,
           payload: { voucher, signerAddress },
@@ -161,7 +174,7 @@ export const mintAndRedeem =
   (artworkId, artistGalleryAddress, voucher, price) =>
   async (dispatch, getState) => {
     try {
-      dispatch({ type: BUYER_MINT_AND_REDEEM_REQUEST });
+      dispatch({ type: MINT_AND_REDEEM_REQUEST });
       const {
         userLogin: { userInfo },
       } = getState();
@@ -179,7 +192,7 @@ export const mintAndRedeem =
       );
 
       const fee = ethers.utils.parseUnits(
-        parseInt(data.transaction_fee_ether).toFixed(5),
+        parseFloat(data.transaction_fee_ether).toFixed(5).toString(),
         'ether'
       );
 
@@ -213,20 +226,43 @@ export const mintAndRedeem =
         signature: voucher.signature,
       };
 
-      await redeemerContract.redeem(redeemerAddress, theVoucher, fee, {
-        value: theVoucher.price,
-      });
+      const redeemTx = await redeemerContract.redeem(
+        redeemerAddress,
+        theVoucher,
+        fee,
+        {
+          value: theVoucher.priceWei,
+        }
+      );
+      const transactionData = await redeemTx.wait();
+      console.log(transactionData);
+
+      const eventTokenId = parseInt(transactionData.events[2].args.tokenId);
+
+      dispatch(
+        updateArtwork(
+          eventTokenId,
+          artistGalleryAddress,
+          false,
+          false,
+          false,
+          'RedeemAndMint'
+        )
+      );
 
       dispatch({
-        type: BUYER_MINT_AND_REDEEM_SUCCESS,
-        payload: voucher,
+        type: MINT_AND_REDEEM_SUCCESS,
+        payload: {
+          eventTokenId,
+          redeemerAddress,
+        },
       });
     } catch (e) {
       console.log('problem buying: ');
       console.log({ e });
 
       dispatch({
-        type: BUYER_MINT_AND_REDEEM_FAIL,
+        type: MINT_AND_REDEEM_FAIL,
         // eslint-disable-next-line no-nested-ternary
         payload: e.error
           ? e.error.message

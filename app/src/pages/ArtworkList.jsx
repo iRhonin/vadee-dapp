@@ -4,7 +4,16 @@ import { makeStyles } from '@mui/styles';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ImageList from '@mui/material/ImageList';
-import { Grid, Box, Paper, Hidden, Container, Typography } from '@mui/material';
+import {
+  Grid,
+  Box,
+  Paper,
+  Hidden,
+  Container,
+  Typography,
+  Checkbox,
+  FormControlLabel,
+} from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Divider from '@mui/material/Divider';
@@ -43,6 +52,7 @@ function ArtworksList() {
   const history = useHistory();
 
   const [page, setPage] = useState(1);
+  const [checked, setChecked] = useState(true);
 
   const favArtwork = useSelector((state) => state.favArtwork);
   const { artworkId } = favArtwork;
@@ -103,6 +113,10 @@ function ArtworksList() {
     history.push(`/artworks/?keyword=${keyword}&page=${value}`);
   };
 
+  const handleChange = (event) => {
+    setChecked(event.target.checked);
+  };
+
   const classes = useStyles();
 
   return (
@@ -129,6 +143,16 @@ function ArtworksList() {
           <Grid container direction="row">
             <Grid item xs sx={{ marginTop: 0 }}>
               <Divider style={{ margin: 'auto' }} variant="middle" />
+              <FormControlLabel
+                label="On Sale"
+                control={
+                  <Checkbox
+                    checked={checked}
+                    onChange={handleChange}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                  />
+                }
+              />
               {origins && origins.origins && (
                 <SideFilter
                   title="Region"
@@ -155,10 +179,16 @@ function ArtworksList() {
                   gap={30}
                   sx={{ paddingRight: 5 }}
                 >
-                  {artworks &&
-                    artworks.map((artwork) => (
-                      <ArtCard key={artwork._id} data={artwork} />
-                    ))}
+                  {artworks && checked
+                    ? artworks.map(
+                        (artwork) =>
+                          artwork.on_market && (
+                            <ArtCard key={artwork._id} data={artwork} />
+                          )
+                      )
+                    : artworks.map((artwork) => (
+                        <ArtCard key={artwork._id} data={artwork} />
+                      ))}
                 </ImageList>
               </Box>
               <Grid>
@@ -181,9 +211,11 @@ function ArtworksList() {
                   {artworks &&
                     artworks.map((artwork) => (
                       <Grid key={artwork._id}>
-                        <Paper className={classes.paper}>
-                          <ArtCard data={artwork} />
-                        </Paper>
+                        {artwork.on_market && checked && (
+                          <Paper className={classes.paper}>
+                            <ArtCard data={artwork} />
+                          </Paper>
+                        )}
                       </Grid>
                     ))}
                 </Paper>

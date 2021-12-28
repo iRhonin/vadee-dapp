@@ -75,7 +75,9 @@ describe("MarketPlace", function () {
       .to.emit(galleryContract, 'Transfer')  // transfer from null address to artist
       .withArgs('0x0000000000000000000000000000000000000000', artist.address, voucher.artworkId)
       .and.to.emit(galleryContract, 'Transfer') // transfer from artist to redeemer
-      .withArgs(artist.address, redeemer.address, voucher.artworkId);
+      .withArgs(artist.address, redeemer.address, voucher.artworkId)
+      .and.to.emit(galleryContract, 'RedeemedAndMinted') // tokenId is the artworkId
+      .withArgs(voucher.artworkId);
   });
 
   it("Should transfer fee to market Place after minting", async function () {
@@ -144,9 +146,9 @@ describe("MarketPlace", function () {
     const redeemerMarketContract = redeemerFactory.attach(redeemerFactory.address)
 
     const sellTransaction = await redeemerMarketContract.createMarketSell(galleryAddress, voucher.artworkId, priceInWei)
-    const sellReceipt = await sellTransaction.wait()
-    const marketItemId = (parseInt(sellReceipt.events[2].args.marketItemId))
-    const price = (parseInt(sellReceipt.events[2].args.price))
+    const transactionData = await sellTransaction.wait()
+    const marketItemId = (parseInt(transactionData.events[2].args.marketItemId))
+    const price = (parseInt(transactionData.events[2].args.price))
 
     const newBuyerFactory = marketContract.connect(newBuyer)
     const newBuyerMarketContract = newBuyerFactory.attach(newBuyerFactory.address)
@@ -159,7 +161,35 @@ describe("MarketPlace", function () {
       .to.changeEtherBalances([newBuyer, redeemer], [-1500000000000000, price - fee]) 
       .to.emit(galleryContract, 'Transfer')  // transfer from market place address to new buyer
       .withArgs(redeemerMarketContract.address, newBuyer.address, voucher.artworkId)
-       });
+  });
 
+    
+  it("Should withdraw the market balance", async function () {
+    const { artist, redeemer, newBuyer, galleryContract, redeemerContract, marketContract, fee } = await deploy()
+    const priceInWei = ethers.utils.parseUnits(
+      '0.0015',
+      'ether'
+    );
+
+    const zeroEth = ethers.utils.parseUnits(
+      '0',
+      'ether'
+    );
+    const redeemerAddress =await redeemer.address
+
+    const theVoucher = new Voucher({ contract: galleryContract, signer: artist });
+    const voucher = await theVoucher.signTransaction(1, 'title','1','10', priceInWei, '150', 'Ehsan', 'ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi')
+    await redeemerContract.redeem(redeemerAddress, voucher, fee, { value: priceInWei })
+
+    const balanceBefore = await marketContract.fetchMarketBalance();
+    expect(balanceBefore).to.equal(fee)
+
+    await marketContract.withdraw()
+
+    const balanceAfter = await marketContract.fetchMarketBalance();
+    expect(balanceAfter).to.equal(zeroEth)
+  });
+   
+  
 
 });

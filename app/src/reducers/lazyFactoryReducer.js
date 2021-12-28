@@ -2,9 +2,9 @@ import {
   WALLET_CONNECT_REQUEST,
   WALLET_CONNECT_SUCCESS,
   WALLET_CONNECT_FAIL,
-  BUYER_MINT_AND_REDEEM_FAIL,
-  BUYER_MINT_AND_REDEEM_REQUEST,
-  BUYER_MINT_AND_REDEEM_SUCCESS,
+  MINT_AND_REDEEM_FAIL,
+  MINT_AND_REDEEM_REQUEST,
+  MINT_AND_REDEEM_SUCCESS,
   DEPLOY_MY_GALLERY_FAIL,
   DEPLOY_MY_GALLERY_REQUEST,
   DEPLOY_MY_GALLERY_RESET,
@@ -99,19 +99,19 @@ export const voucherReducer = (state = {}, action) => {
 
 export const mintAndRedeemReducer = (state = {}, action) => {
   switch (action.type) {
-    case BUYER_MINT_AND_REDEEM_REQUEST:
+    case MINT_AND_REDEEM_REQUEST:
       return {
         ...state,
         loading: true,
         success: false,
       };
-    case BUYER_MINT_AND_REDEEM_SUCCESS:
+    case MINT_AND_REDEEM_SUCCESS:
       return {
         loading: false,
         success: true,
         purchased: action.payload,
       };
-    case BUYER_MINT_AND_REDEEM_FAIL:
+    case MINT_AND_REDEEM_FAIL:
       return {
         loading: false,
         success: false,

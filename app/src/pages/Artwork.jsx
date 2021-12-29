@@ -253,13 +253,17 @@ function Artwork() {
                       {artwork.width} x {artwork.height}
                     </span>
                   </Typography>
-                  {artwork.editionNum > 0 && (
+                  {artwork.edition_number > 0 && (
                     <Typography variant="body2">
-                      {artwork.editionNum} from {artwork.editionSize} Number
+                      {artwork.edition_number} from {artwork.edition_total}
                     </Typography>
                   )}
                   <Typography color="#666666" variant="body2">
-                    {`${artwork.quantity} Remaining`}
+                    {`${
+                      !artwork.is_sold_out
+                        ? artwork.edition_total - artwork.edition_number + 1
+                        : 0
+                    } Remaining`}
                   </Typography>
                 </Grid>
                 <Divider

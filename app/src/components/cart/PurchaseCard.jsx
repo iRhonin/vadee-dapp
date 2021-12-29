@@ -5,11 +5,11 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import { useSelector, useDispatch } from 'react-redux';
 import Grid from '@mui/material/Grid';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import { useParams } from 'react-router';
-import { fetchEthPrice, fetchMarketFee } from '../../actions/marketPlaceAction';
+import { CircularProgress } from '@mui/material';
+import { fetchMarketFees } from '../../actions/marketPlaceAction';
 import { fetchOneArtWork } from '../../actions/artworkAction';
-import { dollarToEth, weiToEth } from '../../converter';
+import { weiToEth } from '../../converter';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -26,43 +26,31 @@ export default function PurchaseCard() {
   const { workId } = useParams();
   const dispatch = useDispatch();
 
-  const [shippingPrice, setShippingPrice] = useState();
-  const [totalPrice, setTotalPrice] = useState();
-  const [serviceFee, setServiceFee] = useState();
-  const [shippingEth, setShippingEth] = useState();
   const [priceEth, setPriceEth] = useState();
   const [totalPriceEth, setTotalPriceEth] = useState();
 
   const theCart = useSelector((state) => state.theCart);
   const { cartItems } = theCart;
 
-  const marketFee = useSelector((state) => state.marketFee);
-  const { fee, success: successMarketFee } = marketFee;
-
-  const ethPrice = useSelector((state) => state.ethPrice);
-  const { result, success: successEthPrice } = ethPrice;
+  const shippingAndFee = useSelector((state) => state.shippingAndFee);
+  const { vadeeFees, success: successShippingAndFee } = shippingAndFee;
 
   const theArtwork = useSelector((state) => state.theArtwork);
-  const { artwork } = theArtwork;
-
-  // total in dollar
-  useEffect(() => {
-    if (successMarketFee && cartItems[0]) {
-      setServiceFee(fee);
-      setShippingPrice(0);
-      setTotalPrice(cartItems[0].price + shippingPrice);
-    }
-  }, [cartItems, shippingPrice, serviceFee, successMarketFee, fee]);
+  const { artwork, success: successArtwork } = theArtwork;
 
   useEffect(() => {
-    if (cartItems && cartItems[0] && workId) {
-      dispatch(fetchMarketFee(cartItems[0].price));
+    if (
+      cartItems &&
+      cartItems[0] &&
+      workId &&
+      (!successShippingAndFee || !successArtwork)
+    ) {
+      dispatch(fetchMarketFees(workId));
       dispatch(fetchOneArtWork(workId));
-      dispatch(fetchEthPrice());
     }
-  }, [cartItems, dispatch, workId]);
+  }, [cartItems, workId, dispatch]);
 
-  // convert price
+  // convert artwork price from Wei to Eth price
   useEffect(() => {
     if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
       const convertedPrice = weiToEth(artwork.voucher.price_wei);
@@ -70,37 +58,28 @@ export default function PurchaseCard() {
     }
   }, [artwork]);
 
-  // shipping
   useEffect(() => {
-    if (!shippingEth) {
-      setShippingPrice(100);
-    }
-  }, [shippingEth]);
-
-  // convert shipping
-  useEffect(() => {
-    if (shippingPrice && !shippingEth && successEthPrice) {
-      console.log('shippingPrice');
-      const convertedPrice = dollarToEth(shippingPrice, result.ethereum.usd);
-      setShippingEth(convertedPrice);
-    }
-  }, [shippingPrice, shippingEth, successEthPrice, result]);
-
-  // convert price
-  useEffect(() => {
-    if (priceEth && shippingEth && successEthPrice) {
+    if (priceEth && vadeeFees) {
       console.log('now');
-      setTotalPriceEth(parseFloat(priceEth) + parseFloat(shippingEth));
+      setTotalPriceEth(
+        parseFloat(vadeeFees.artwork_price_ether) +
+          parseFloat(vadeeFees.shipping_price_ether)
+      );
     }
-  }, [priceEth, shippingEth, successEthPrice]);
+  }, [priceEth, vadeeFees]);
 
   const classes = useStyles();
   return (
-    <>
-      {!cartItems[0] ||
-      !artwork.voucher ||
-      !successMarketFee ||
-      !successEthPrice ? null : (
+    <Grid>
+      {!artwork.voucher ||
+      !cartItems[0] ||
+      !successShippingAndFee ||
+      !vadeeFees ||
+      !totalPriceEth ? (
+        <Paper className={classes.root} elevation={0} square>
+          <CircularProgress />
+        </Paper>
+      ) : (
         <Paper className={classes.root} elevation={0} variant="outlined" square>
           <Grid
             container
@@ -146,7 +125,10 @@ export default function PurchaseCard() {
                   </Grid>
                   <Grid item md={8}>
                     <Typography variant="body2">
-                      {artwork.voucher.artwork_id && `Ξ  ${priceEth}`}
+                      {artwork.voucher.artwork_id &&
+                        `Ξ  ${parseFloat(vadeeFees.artwork_price_ether).toFixed(
+                          4
+                        )}`}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -156,7 +138,10 @@ export default function PurchaseCard() {
                   </Grid>
                   <Grid item md={8}>
                     <Typography variant="body2">
-                      {artwork.voucher.artwork_id && `Ξ  ${shippingEth}`}
+                      {artwork.voucher.artwork_id &&
+                        `Ξ  ${parseFloat(
+                          vadeeFees.shipping_price_ether
+                        ).toFixed(4)}`}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -185,6 +170,6 @@ export default function PurchaseCard() {
           </Grid>
         </Paper>
       )}
-    </>
+    </Grid>
   );
 }

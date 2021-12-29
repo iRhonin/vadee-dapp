@@ -72,7 +72,6 @@ function SamplePrevArrow(props) {
 
 export default function CarouselArtistArtworks({ artistId }) {
   const dispatch = useDispatch();
-  console.log('artistId');
   const theArtist = useSelector((state) => state.theArtist);
   const { error, loading, artist, success } = theArtist;
 

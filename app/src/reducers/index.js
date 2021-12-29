@@ -85,7 +85,7 @@ export default combineReducers({
   walletConnection: walletConnectionReducer,
   myVoucher: voucherReducer,
   marketPlaceDeployment: marketPlaceDeployReducer,
-  marketFee: marketPlaceFeeReducer,
+  shippingAndFee: marketPlaceFeeReducer,
   theMarketPlace: marketPlaceReducer,
   marketPlaceBalance: marketBalanceReducer,
   marketWithdraw: marketWithdrawReducer,

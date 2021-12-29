@@ -182,6 +182,7 @@ function ArtworksList() {
                   {artworks && checked
                     ? artworks.map(
                         (artwork) =>
+                          artwork.edition_number <= artwork.edition_total &&
                           artwork.on_market && (
                             <ArtCard key={artwork._id} data={artwork} />
                           )

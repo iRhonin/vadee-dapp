@@ -9,7 +9,10 @@ import Message from '../Message';
 import Loader from '../Loader';
 import { connectWallet, mintAndRedeem } from '../../actions/lazyFactoryAction';
 import { fetchOneArtWork, updateArtwork } from '../../actions/artworkAction';
-import { fetchEthPrice } from '../../actions/marketPlaceAction';
+import {
+  fetchEthPrice,
+  fetchMarketFees,
+} from '../../actions/marketPlaceAction';
 import { MINT_AND_REDEEM_RESET } from '../../constants/lazyFactoryConstants';
 import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 
@@ -18,7 +21,8 @@ function CartReview({ setTabValue, formValues }) {
   const history = useHistory();
 
   const [isDisabled, setIsDisabled] = useState(false);
-
+  const [userAccountStart, setUserAccountStart] = useState();
+  const [userAccountEnd, setUserAccountEnd] = useState();
   const userDetails = useSelector((state) => state.userDetails);
   const {
     error: errorUserDetails,
@@ -28,6 +32,9 @@ function CartReview({ setTabValue, formValues }) {
 
   const theArtwork = useSelector((state) => state.theArtwork);
   const { success: successArtwork, artwork } = theArtwork;
+
+  const shippingAndFee = useSelector((state) => state.shippingAndFee);
+  const { vadeeFees, success: successShippingAndFee } = shippingAndFee;
 
   const walletConnection = useSelector((state) => state.walletConnection);
   const {
@@ -50,28 +57,25 @@ function CartReview({ setTabValue, formValues }) {
   const theCart = useSelector((state) => state.theCart);
   const { cartItems } = theCart;
 
-  const userLogin = useSelector((state) => state.userLogin);
-  const { userInfo } = userLogin;
-
   useEffect(() => {
     if (!successUserDetails) {
       dispatch(fetchUserDetails());
     }
-  }, [userInfo, history, successUserDetails]);
+  }, [dispatch, successUserDetails, successRedeemAndMint]);
 
   // fetch artwork if not success
   useEffect(() => {
-    if (!successArtwork && cartItems[0] && cartItems[0].artworkId) {
+    if (cartItems[0] && cartItems[0].artworkId) {
       dispatch(fetchOneArtWork(cartItems[0].artworkId));
     }
-  }, [dispatch, cartItems, successArtwork]);
+  }, [cartItems, successRedeemAndMint]);
 
+  // Button text
   useEffect(() => {
-    dispatch(fetchEthPrice());
-    dispatch(connectWallet());
-    window.ethereum.on('accountsChanged', function (accounts) {
-      dispatch(connectWallet());
-    });
+    if (wallet) {
+      setUserAccountStart(wallet ? wallet.walletAddress.slice(0, 6) : null);
+      setUserAccountEnd(wallet ? wallet.walletAddress.slice(-5) : null);
+    }
   }, [dispatch]);
 
   useEffect(() => {
@@ -79,6 +83,20 @@ function CartReview({ setTabValue, formValues }) {
       dispatch(fetchOneArtWork(artwork._id));
     }
   }, [successUpdateArtwork, successRedeemAndMint, artwork]);
+
+  // change to receipt tab
+  useEffect(() => {
+    if (successRedeemAndMint && successUpdateArtwork) {
+      setTabValue('3');
+    }
+  }, [successRedeemAndMint, successUpdateArtwork]);
+
+  // fetch shipping and fee rate
+  useEffect(() => {
+    if (!successShippingAndFee) {
+      dispatch(fetchMarketFees(artwork._id));
+    }
+  }, [artwork]);
 
   // edit
   const onEdit = () => {
@@ -90,16 +108,12 @@ function CartReview({ setTabValue, formValues }) {
     dispatch({ type: ARTWORK_UPDATE_RESET });
     dispatch(
       mintAndRedeem(
-        artwork._id,
         artwork.artist.gallery_address,
         artwork.voucher,
-        artwork.price
+        vadeeFees.transaction_fee_ether
       )
     );
   };
-
-  const userAccountStart = wallet ? wallet.slice(0, 6) : null;
-  const userAccountEnd = wallet ? wallet.slice(-5) : null;
 
   return (
     <div>

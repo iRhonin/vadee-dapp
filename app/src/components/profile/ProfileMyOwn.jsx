@@ -16,13 +16,13 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import Loader from '../Loader';
 import Message from '../Message';
 import { fetchArtistWorks, fetchUserDetails } from '../../actions/userAction';
-import ProfileMyArtCard from './ProfileMyArtCard';
 import { DEPLOY_MY_GALLERY_RESET } from '../../constants/lazyFactoryConstants';
 import {
   fetchEthPrice,
   fetchMarketPlace,
 } from '../../actions/marketPlaceAction';
 import { deployMyGallery } from '../../actions/lazyFactoryAction';
+import ProfileMyOwnCards from './ProfileMyOwnCards';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -39,13 +39,16 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function ProfileMyWorks() {
+function ProfileMyOwn() {
   const dispatch = useDispatch();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [galleryName, setGalleryName] = useState('');
   const [artistGalleryAddress, setArtistGalleryAddress] = useState('');
+
+  const walletConnection = useSelector((state) => state.walletConnection);
+  const { error: errorWallet } = walletConnection;
 
   const myWorks = useSelector((state) => state.myWorks);
   const {
@@ -177,7 +180,7 @@ function ProfileMyWorks() {
                     sx={{ paddingRight: 5 }}
                   >
                     {myWorks.works.my_artworks.map((artwork) => (
-                      <ProfileMyArtCard key={artwork._id} artwork={artwork} />
+                      <ProfileMyOwnCards key={artwork._id} artwork={artwork} />
                     ))}
                   </ImageList>
                 </Grid>
@@ -189,7 +192,7 @@ function ProfileMyWorks() {
                       {myWorks.works.my_artworks.map((artwork) => (
                         <Grid key={artwork._id}>
                           <Paper className={classes.paper}>
-                            <ProfileMyArtCard
+                            <ProfileMyOwnCards
                               key={artwork._id}
                               artwork={artwork}
                             />
@@ -203,9 +206,9 @@ function ProfileMyWorks() {
             </>
           )}
           <Grid item xs={12} sx={{ textAlign: 'center' }}>
-            {(errorDeployGallery || errorSignature) && (
+            {(errorDeployGallery || errorSignature || errorWallet) && (
               <Message severity="error">
-                {errorDeployGallery || errorSignature}
+                {errorDeployGallery || errorSignature || errorWallet}
               </Message>
             )}
           </Grid>
@@ -215,4 +218,4 @@ function ProfileMyWorks() {
   );
 }
 
-export default ProfileMyWorks;
+export default ProfileMyOwn;

@@ -18,9 +18,9 @@ import {
   MARKET_ETH_PRICE_REQUEST,
   MARKET_ETH_PRICE_FAIL,
   MARKET_ETH_PRICE_SUCCESS,
-  MARKET_FEE_REQUEST,
-  MARKET_FEE_SUCCESS,
-  MARKET_FEE_FAIL,
+  MARKET_FEE_SHIPPING_REQUEST,
+  MARKET_FEE_SHIPPING_SUCCESS,
+  MARKET_FEE_SHIPPING_FAIL,
   MARKET_WITHDRAW_REQUEST,
   MARKET_WITHDRAW_SUCCESS,
   MARKET_WITHDRAW_FAIL,
@@ -83,9 +83,9 @@ export const deployMarketPlace = () => async (dispatch, getState) => {
   }
 };
 
-export const fetchMarketFee = (price) => async (dispatch) => {
+export const fetchMarketFees = (artworkId) => async (dispatch) => {
   try {
-    dispatch({ type: MARKET_FEE_REQUEST });
+    dispatch({ type: MARKET_FEE_SHIPPING_REQUEST });
 
     const config = {
       headers: {
@@ -94,17 +94,17 @@ export const fetchMarketFee = (price) => async (dispatch) => {
     };
 
     const { data } = await artworksBase.get(
-      `/market/fees/${price.toString()}`,
+      `/market/fees/${artworkId.toString()}`,
       config
     );
 
     dispatch({
-      type: MARKET_FEE_SUCCESS,
-      payload: data.transaction_fee_front,
+      type: MARKET_FEE_SHIPPING_SUCCESS,
+      payload: data,
     });
   } catch (e) {
     dispatch({
-      type: MARKET_FEE_FAIL,
+      type: MARKET_FEE_SHIPPING_FAIL,
       payload:
         e.response && e.response.data.details
           ? e.response.data.details

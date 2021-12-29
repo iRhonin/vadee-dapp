@@ -30,8 +30,8 @@ class Voucher {
     title,
     editionNumber,
     edition,
-    priceWei,
-    priceDollar,
+    totalInWei,
+    totalInDollar,
     firstName,
     tokenUri
   ) {
@@ -49,15 +49,15 @@ class Voucher {
         { name: 'content', type: 'string' },
       ],
     };
-    const theId = parseInt(artworkId);
+    const theId = `${artworkId}${editionNumber}`;
 
     const voucher = {
       title,
-      artworkId: theId,
+      artworkId: parseInt(theId),
       editionNumber: editionNumber.toLocaleString(),
       edition: edition.toLocaleString(),
-      priceWei,
-      priceDollar: priceDollar.toLocaleString(),
+      priceWei: totalInWei,
+      priceDollar: totalInDollar,
       tokenUri,
       content: `Hey ${firstName}, You are signing this work to be available for sale!`,
     };

@@ -8,12 +8,15 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import ProfileForm from '../components/profile/ProfileForm';
 import ProfileFavorite from '../components/profile/ProfileFavorite';
-import ProfileOwned from '../components/profile/ProfileOwned';
+import ProfileOwned from '../components/profile/ProfileMyOwn';
 import ProfileAdminTab from '../components/profile/ProfileAdminTab';
 import ProfileMyOnSale from '../components/profile/ProfileMyOnSale';
+import { SIGN_MY_ITEM_RESET } from '../constants/lazyFactoryConstants';
 // import AccountUserOrders from '../components/profile/ProfileOrders';
 
 export default function UserProfile() {
+  const dispatch = useDispatch();
+
   const [value, setValue] = useState('1');
 
   const userDetails = useSelector((state) => state.userDetails);
@@ -66,10 +69,15 @@ export default function UserProfile() {
                   aria-label="lab API tabs example"
                 >
                   <Tab label="My Profile" value="1" />
-                  <Tab label="Owned" value="2" />
+                  <Tab
+                    label="Own"
+                    value="2"
+                    onClick={() => dispatch({ type: SIGN_MY_ITEM_RESET })}
+                  />
                   <Tab label="On Sale" value="3" />
-                  <Tab label="Saves & Follows" value="4" />
-                  {user && user.isAdmin && <Tab label="ADMIN" value="5" />}
+                  <Tab label="Transactions" value="4" />
+                  <Tab label="Saves & Follows" value="5" />
+                  {user && user.isAdmin && <Tab label="ADMIN" value="6" />}
                 </TabList>
               </Box>
 
@@ -84,9 +92,12 @@ export default function UserProfile() {
                   <ProfileMyOnSale />
                 </TabPanel>
                 <TabPanel value="4">
-                  <ProfileFavorite />
+                  <ProfileAdminTab />
                 </TabPanel>
                 <TabPanel value="5">
+                  <ProfileFavorite />
+                </TabPanel>
+                <TabPanel value="6">
                   <ProfileAdminTab />
                 </TabPanel>
               </Box>

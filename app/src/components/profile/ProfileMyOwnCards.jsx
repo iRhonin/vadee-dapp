@@ -9,16 +9,12 @@ import PropTypes from 'prop-types';
 import LoadingButton from '@mui/lab/LoadingButton';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { signMyItem } from '../../actions/lazyFactoryAction';
-import {
-  deleteVoucher,
-  fetchOneArtWork,
-  updateArtwork,
-} from '../../actions/artworkAction';
-import { SIGN_MY_ITEM_RESET } from '../../constants/lazyFactoryConstants';
+import { deleteVoucher, fetchOneArtWork } from '../../actions/artworkAction';
 import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 import { dollarToEth, weiToEth } from '../../converter';
+import { fetchMarketFees } from '../../actions/marketPlaceAction';
 
-export default function ProfileMyArtCard({ artwork }) {
+export default function ProfileMyOnSaleCard({ artwork }) {
   const dispatch = useDispatch();
 
   const [artistGalleryAddress, setArtistGalleryAddress] = useState('');
@@ -32,7 +28,6 @@ export default function ProfileMyArtCard({ artwork }) {
   const myVoucher = useSelector((state) => state.myVoucher);
   const {
     voucher,
-    signerAddress,
     loading: loadingSignature,
     success: successSignature,
   } = myVoucher;
@@ -40,8 +35,8 @@ export default function ProfileMyArtCard({ artwork }) {
   const artworkUpdate = useSelector((state) => state.artworkUpdate);
   const { success: successUpdateArtwork } = artworkUpdate;
 
-  const ethPrice = useSelector((state) => state.ethPrice);
-  const { result, success: successEthPrice } = ethPrice;
+  const shippingAndFee = useSelector((state) => state.shippingAndFee);
+  const { vadeeFees, success: successShippingAndFee } = shippingAndFee;
 
   // loading button
   useEffect(() => {
@@ -54,13 +49,21 @@ export default function ProfileMyArtCard({ artwork }) {
 
   // disable button before fetching ETH price
   useEffect(() => {
-    if (successEthPrice) {
+    if (successShippingAndFee) {
       setIsDisabled(false);
     } else {
       setIsDisabled(true);
     }
-  }, [successEthPrice]);
+  }, [successShippingAndFee]);
 
+  // fetch shipping and fee rate
+  useEffect(() => {
+    if (!successShippingAndFee) {
+      dispatch(fetchMarketFees(artwork._id));
+    }
+  }, [artwork]);
+
+  // set gallery address
   useEffect(() => {
     if (user && user.artist.gallery_address) {
       setArtistGalleryAddress(user.artist.gallery_address);
@@ -73,34 +76,30 @@ export default function ProfileMyArtCard({ artwork }) {
     }
   }, [dispatch, successSignature, artwork, voucher]);
 
-  // convert price to ETH
+  // set price
   useEffect(() => {
-    if (artwork && artwork.voucher && artwork.voucher.artwork_id) {
-      const convertedPrice = weiToEth(artwork.voucher.price_wei);
-      setPriceEth(convertedPrice);
+    if (successShippingAndFee && artwork.voucher.price_wei) {
+      const totalEthPrice = weiToEth(artwork.voucher.price_wei);
+      setPriceEth(parseFloat(totalEthPrice).toFixed(4));
     }
-  }, [artwork]);
+    if (!artwork.voucher.price_wei) {
+      setPriceEth(artwork.price);
+    }
+  }, [artwork, successShippingAndFee, vadeeFees]);
 
   // handle signature
   const handleSignature = async () => {
-    console.log(artwork);
-
     dispatch({ type: ARTWORK_UPDATE_RESET });
-    dispatch({ type: SIGN_MY_ITEM_RESET });
-
-    const convertedPrice = await dollarToEth(
-      artwork.price,
-      result.ethereum.usd
-    );
-    if (artistGalleryAddress) {
+    if (artistGalleryAddress && vadeeFees) {
       dispatch(
         signMyItem(
           artistGalleryAddress,
           artwork,
-          convertedPrice,
+          vadeeFees.artwork_price_ether,
+          vadeeFees.shipping_price_ether,
           artwork.price,
-          user.firstName,
-          user.lastName
+          vadeeFees.shipping_price_dollar,
+          user.firstName
         )
       );
     }
@@ -119,7 +118,7 @@ export default function ProfileMyArtCard({ artwork }) {
           },
         }}
       >
-        {artwork && (
+        {successShippingAndFee && artwork && priceEth && (
           <ImageListItem style={{ color: '#666666' }}>
             <Link
               style={{ position: 'absolute', width: '100%', height: '100%' }}
@@ -143,13 +142,26 @@ export default function ProfileMyArtCard({ artwork }) {
               sx={{
                 width: '100%',
                 margin: 'auto',
-                marginBottom: 5,
                 textAlign: 'center',
               }}
             >
               {artwork.voucher.artwork_id
-                ? ` Ξ  ${priceEth}`
+                ? ` Ξ  ${parseFloat(vadeeFees.artwork_price_ether).toFixed(4)}`
                 : `$ ${artwork.price.toLocaleString()}`}
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                width: '100%',
+                margin: 'auto',
+                marginBottom: 5,
+                textAlign: 'center',
+              }}
+            >
+              shipping:
+              {artwork.voucher.artwork_id
+                ? ` Ξ  ${parseFloat(vadeeFees.shipping_price_ether).toFixed(4)}`
+                : `$ ${vadeeFees.shipping_price_dollar.toLocaleString()}`}
             </Typography>
           </ImageListItem>
         )}
@@ -176,6 +188,6 @@ export default function ProfileMyArtCard({ artwork }) {
   );
 }
 
-ProfileMyArtCard.propTypes = {
+ProfileMyOnSaleCard.propTypes = {
   artwork: PropTypes.object,
 };

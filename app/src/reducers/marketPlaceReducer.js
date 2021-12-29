@@ -35,9 +35,9 @@ import {
   MARKET_ETH_PRICE_SUCCESS,
   MARKET_ETH_PRICE_FAIL,
   MARKET_ETH_PRICE_RESET,
-  MARKET_FEE_REQUEST,
-  MARKET_FEE_SUCCESS,
-  MARKET_FEE_FAIL,
+  MARKET_FEE_SHIPPING_REQUEST,
+  MARKET_FEE_SHIPPING_SUCCESS,
+  MARKET_FEE_SHIPPING_FAIL,
   MARKET_WITHDRAW_REQUEST,
   MARKET_WITHDRAW_SUCCESS,
   MARKET_WITHDRAW_FAIL,
@@ -72,19 +72,19 @@ export const marketPlaceDeployReducer = (state = {}, action) => {
 
 export const marketPlaceFeeReducer = (state = {}, action) => {
   switch (action.type) {
-    case MARKET_FEE_REQUEST:
+    case MARKET_FEE_SHIPPING_REQUEST:
       return {
         ...state,
         loading: true,
         success: false,
       };
-    case MARKET_FEE_SUCCESS:
+    case MARKET_FEE_SHIPPING_SUCCESS:
       return {
         loading: false,
         success: true,
-        fee: action.payload,
+        vadeeFees: action.payload,
       };
-    case MARKET_FEE_FAIL:
+    case MARKET_FEE_SHIPPING_FAIL:
       return {
         loading: false,
         error: action.payload,

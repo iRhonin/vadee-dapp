@@ -13,9 +13,6 @@ import CartReview from '../components/cart/CartReview';
 export default function Cart() {
   const [tabValue, setTabValue] = useState('1');
   const [formValues, setFormValues] = useState();
-  useEffect(() => {
-    // setTabValue('1');
-  }, []);
 
   const handleChange = (event, newValue) => {
     setTabValue(newValue);

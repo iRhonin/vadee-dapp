@@ -12,6 +12,7 @@ import ProfileOwned from '../components/profile/ProfileMyOwn';
 import ProfileAdminTab from '../components/profile/ProfileAdminTab';
 import ProfileMyOnSale from '../components/profile/ProfileMyOnSale';
 import { SIGN_MY_ITEM_RESET } from '../constants/lazyFactoryConstants';
+import ProfileOrders from '../components/profile/ProfileOrders';
 // import AccountUserOrders from '../components/profile/ProfileOrders';
 
 export default function UserProfile() {
@@ -92,7 +93,7 @@ export default function UserProfile() {
                   <ProfileMyOnSale />
                 </TabPanel>
                 <TabPanel value="4">
-                  <ProfileAdminTab />
+                  <ProfileOrders />
                 </TabPanel>
                 <TabPanel value="5">
                   <ProfileFavorite />

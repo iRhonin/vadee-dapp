@@ -163,7 +163,7 @@ export const signMyItem =
   };
 
 export const mintAndRedeem =
-  (artistGalleryAddress, voucher, feeEth) => async (dispatch) => {
+  (formValues, artistGalleryAddress, voucher, feeEth) => async (dispatch) => {
     try {
       dispatch({ type: MINT_AND_REDEEM_REQUEST });
       const { signer: redeemer } = await connectMetaMaskWallet();
@@ -193,8 +193,6 @@ export const mintAndRedeem =
         signature: voucher.signature,
       };
 
-      console.log(voucher);
-
       const feeWei = ethers.utils.parseUnits(
         parseFloat(feeEth).toFixed(5).toString(),
         'ether'
@@ -222,7 +220,8 @@ export const mintAndRedeem =
           voucher,
           'RedeemAndMint',
           transactionHash,
-          feeWei
+          feeWei,
+          formValues
         )
       );
 

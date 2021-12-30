@@ -8,12 +8,8 @@ import { fetchUserDetails } from '../../actions/userAction';
 import Message from '../Message';
 import Loader from '../Loader';
 import { connectWallet, mintAndRedeem } from '../../actions/lazyFactoryAction';
-import { fetchOneArtWork, updateArtwork } from '../../actions/artworkAction';
-import {
-  fetchEthPrice,
-  fetchMarketFees,
-} from '../../actions/marketPlaceAction';
-import { MINT_AND_REDEEM_RESET } from '../../constants/lazyFactoryConstants';
+import { fetchOneArtWork } from '../../actions/artworkAction';
+import { fetchMarketFees } from '../../actions/marketPlaceAction';
 import { ARTWORK_UPDATE_RESET } from '../../constants/artworkConstants';
 
 function CartReview({ setTabValue, formValues }) {
@@ -45,7 +41,6 @@ function CartReview({ setTabValue, formValues }) {
 
   const redeemAndMint = useSelector((state) => state.redeemAndMint);
   const {
-    redeemerAddress,
     error: errorRedeemAndMint,
     loading: loadingRedeemAndMint,
     success: successRedeemAndMint,
@@ -62,6 +57,13 @@ function CartReview({ setTabValue, formValues }) {
       dispatch(fetchUserDetails());
     }
   }, [dispatch, successUserDetails, successRedeemAndMint]);
+
+  // when no voucher
+  useEffect(() => {
+    if (artwork.voucher && !artwork.voucher.artwork_id) {
+      history.push(`/artworks/${artwork._id}`);
+    }
+  }, [successArtwork, artwork]);
 
   // fetch artwork if not success
   useEffect(() => {
@@ -108,6 +110,7 @@ function CartReview({ setTabValue, formValues }) {
     dispatch({ type: ARTWORK_UPDATE_RESET });
     dispatch(
       mintAndRedeem(
+        formValues,
         artwork.artist.gallery_address,
         artwork.voucher,
         vadeeFees.transaction_fee_ether

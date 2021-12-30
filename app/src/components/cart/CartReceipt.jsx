@@ -1,15 +1,15 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Paper, Grid, Button } from '@mui/material';
+import { Paper, Grid, Typography, Link } from '@mui/material';
 import { useHistory } from 'react-router-dom';
 import { fetchUserDetails } from '../../actions/userAction';
 import Message from '../Message';
 import Loader from '../Loader';
-import { fetchOneArtWork } from '../../actions/artworkAction';
 
-function CartReceipt() {
+function CartReceipt({ setTabValue, formValues }) {
   const dispatch = useDispatch();
+  const history = useHistory();
 
   const userDetails = useSelector((state) => state.userDetails);
   const {
@@ -21,22 +21,15 @@ function CartReceipt() {
   const theArtwork = useSelector((state) => state.theArtwork);
   const { success: successArtwork, artwork } = theArtwork;
 
-  const walletConnection = useSelector((state) => state.walletConnection);
-  const {
-    wallet,
-    success: successWallet,
-    error: errorWallet,
-  } = walletConnection;
+  const artworkUpdate = useSelector((state) => state.artworkUpdate);
+  const { updated } = artworkUpdate;
 
   const redeemAndMint = useSelector((state) => state.redeemAndMint);
-  const { error: errorRedeemAndMint, success: successRedeemAndMint } =
-    redeemAndMint;
-
-  const artworkUpdate = useSelector((state) => state.artworkUpdate);
-  const { success: successUpdateArtwork } = artworkUpdate;
-
-  const theCart = useSelector((state) => state.theCart);
-  const { cartItems } = theCart;
+  const {
+    error: errorRedeemAndMint,
+    loading: loadingRedeemAndMint,
+    success: successRedeemAndMint,
+  } = redeemAndMint;
 
   useEffect(() => {
     if (!successUserDetails) {
@@ -44,36 +37,87 @@ function CartReceipt() {
     }
   }, [dispatch, successUserDetails, successRedeemAndMint]);
 
-  // fetch artwork if not success
+  // when no formValues
   useEffect(() => {
-    if (cartItems[0] && cartItems[0].artworkId) {
-      dispatch(fetchOneArtWork(cartItems[0].artworkId));
+    if (!formValues) {
+      setTabValue('1');
     }
-  }, [cartItems, successRedeemAndMint]);
+  }, [successArtwork, artwork]);
 
   useEffect(() => {
-    if (successUpdateArtwork && successRedeemAndMint) {
-      dispatch(fetchOneArtWork(artwork._id));
+    if (!successRedeemAndMint) {
+      history.push(`/artworks/${artwork._id}`);
     }
-  }, [successUpdateArtwork, successRedeemAndMint, artwork]);
+  }, [successRedeemAndMint]);
 
   return (
     <div>
-      <Paper sx={{ padding: 2 }} elevation={0}>
-        <Grid container direction="row" alignItems="flex-start" spacing={2}>
-          <Grid item xs={12} sx={{ width: '100%', marginTop: 0 }}>
-            <Button
-              variant="contained"
-              sx={{ width: '100%', marginTop: 2, marginBottom: 4 }}
-            >
-              Edit
-            </Button>
+      {formValues && (
+        <Paper sx={{ padding: 2 }} elevation={0}>
+          <Grid container direction="row" alignItems="flex-start" spacing={2}>
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Full Name:
+              </Typography>
+              <Typography component="span">{formValues.firstName}</Typography>
+              <Typography component="span">{formValues.lastName}</Typography>
+            </Grid>
+            <Grid item xs={4} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Country:
+              </Typography>
+              <Typography component="span">{formValues.country}</Typography>
+            </Grid>
+
+            <Grid item xs={4} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Province:
+              </Typography>
+              <Typography component="span">{formValues.province}</Typography>
+            </Grid>
+            <Grid item xs={4} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                City:
+              </Typography>
+              <Typography component="span">{formValues.city}</Typography>
+            </Grid>
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Address:
+              </Typography>
+              <Typography component="span">{formValues.address}</Typography>
+            </Grid>
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Postal Code:
+              </Typography>
+              <Typography component="span">{formValues.postalCode}</Typography>
+            </Grid>
+            <Grid item xs={12} sx={{ width: '100%' }}>
+              <Typography variant="subtitle1" component="span">
+                Phone:
+              </Typography>
+              <Typography component="span">{formValues.phoneNumber}</Typography>
+            </Grid>
+
+            <Grid item xs={12} sx={{ width: '100%', marginTop: 0 }}>
+              <Typography>
+                Your Order was created at: {updated && updated.order.created_at}
+              </Typography>
+              <Link
+                href={`https://rinkeby.etherscan.io/tx/${updated.order.transaction_hash}`}
+                target="blank"
+              >
+                {updated && updated.order.transaction_hash}
+              </Link>
+            </Grid>
           </Grid>
-        </Grid>
-      </Paper>
-      {(errorUserDetails || errorWallet || errorRedeemAndMint) && (
+        </Paper>
+      )}
+
+      {(errorUserDetails || errorRedeemAndMint) && (
         <Message severity="error">
-          {errorUserDetails || errorWallet || errorRedeemAndMint}
+          {errorUserDetails || errorRedeemAndMint}
         </Message>
       )}
       {loadingUserDetails && <Loader />}

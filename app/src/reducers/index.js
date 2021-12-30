@@ -14,21 +14,12 @@ import {
   userRegisterReducer,
   userDetailsReducer,
   userUpdateProfileReducer,
-  usersReducer,
   userDeleteReducer,
   userUpdateReducer,
   favArtworkReducer,
   favArtworkListReducer,
   artistArtworksReducer,
 } from './userReducer';
-import {
-  orderCreateReducer,
-  userOrderListReducer,
-  orderDetailsReducer,
-  orderPayReducer,
-  orderListReducer,
-  orderDeliverReducer,
-} from './orderReducer';
 import headerReducer from './headerReducer';
 import {
   artistByIdReducer,
@@ -68,17 +59,10 @@ export default combineReducers({
   userUpdateProfile: userUpdateProfileReducer,
   favArtwork: favArtworkReducer,
   favArtworkList: favArtworkListReducer,
-  // userList: usersReducer,
   userDeleteList: userDeleteReducer,
   artworkCreate: artworkCreateReducer,
   userUpdate: userUpdateReducer, // update user from admin
   myWorks: artistArtworksReducer,
-  orderCreate: orderCreateReducer,
-  orderDetails: orderDetailsReducer,
-  ordersList: orderListReducer,
-  myOrders: userOrderListReducer,
-  orderPay: orderPayReducer,
-  orderDeliver: orderDeliverReducer,
   articlesList: articleListReducer,
   filterOrigin: filterReducer,
   categoryList: categoriesReducer,

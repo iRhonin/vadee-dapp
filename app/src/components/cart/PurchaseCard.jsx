@@ -71,7 +71,8 @@ export default function PurchaseCard() {
   const classes = useStyles();
   return (
     <Grid>
-      {!artwork.voucher ||
+      {!artwork ||
+      !artwork.voucher ||
       !cartItems[0] ||
       !successShippingAndFee ||
       !vadeeFees ||

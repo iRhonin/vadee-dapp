@@ -89,17 +89,11 @@ export const updateArtwork =
     voucher,
     action,
     transactionHash,
-    feeWei
+    feeWei,
+    formValues
   ) =>
   async (dispatch, getState) => {
     try {
-      console.log(galleryAddress);
-      console.log(sellerAddress);
-      console.log(buyerAddress);
-      console.log(voucher);
-      console.log(action);
-      console.log(transactionHash);
-      console.log(feeWei);
       dispatch({ type: ARTWORK_UPDATE_REQUEST });
 
       const {
@@ -138,17 +132,19 @@ export const updateArtwork =
 
         const priceEth = weiToEth(voucher.price_wei); // from backEnd
         const feeEth = weiToEth(feeWei);
+        // NFT
         formData.append('tokenId', voucher.artwork_id);
         formData.append('galleryAddress', galleryAddress);
         formData.append('transactionHash', transactionHash);
         formData.append('priceEth', priceEth);
         formData.append('feeEth', feeEth);
-      }
-      // Option Add to market: create a market sell
-      else if (action === 'MarketPlace') {
-        // formData.append('artworkId', artworkId);
-        formData.append('walletAddress', sellerAddress); // seller
-        formData.append('galleryAddress', galleryAddress);
+        // order & shipping
+        formData.append('address', formValues.address);
+        formData.append('city', formValues.city);
+        formData.append('country', formValues.country);
+        formData.append('province', formValues.province);
+        formData.append('phoneNumber', formValues.phoneNumber);
+        formData.append('postalCode', formValues.postalCode);
       }
 
       const { data } = await artworksBase.put(

@@ -22,7 +22,14 @@ import CarouselArtistArtworks from '../components/carousel/CarouselArtistArtwork
 import RelatedCategory from '../components/carousel/RelatedCategory';
 import CarouselArtist from '../components/carousel/CarouselArtist';
 import { ARTIST_LIST_RESET } from '../constants/artistConstants';
-import { ARTWORK_DETAILS_RESET } from '../constants/artworkConstants';
+import {
+  ARTWORK_DETAILS_RESET,
+  ARTWORK_UPDATE_RESET,
+} from '../constants/artworkConstants';
+import {
+  MINT_AND_REDEEM_RESET,
+  SIGN_MY_ITEM_RESET,
+} from '../constants/lazyFactoryConstants';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -130,6 +137,10 @@ function Artwork() {
   }, [artwork]);
 
   const onAddToCart = () => {
+    dispatch({ type: MINT_AND_REDEEM_RESET });
+    dispatch({ type: ARTWORK_UPDATE_RESET });
+    dispatch({ type: SIGN_MY_ITEM_RESET });
+
     dispatch(addToCart(workId));
     history.push(`/cart/shippingAddress/${workId}?title=${artwork.title}`);
   };
@@ -280,7 +291,7 @@ function Artwork() {
                       : `$ ${artwork.price.toLocaleString()}`}
                   </span>
                 </Typography>
-                {artwork.voucher.signature && (
+                {!artwork.is_sold_out && artwork.voucher.signature && (
                   <LoadingButton
                     loading={isLoading}
                     onClick={

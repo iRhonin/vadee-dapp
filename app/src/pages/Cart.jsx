@@ -6,7 +6,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import CartShipForm from '../components/cart/CartShipForm';
-import ProfileFavorite from '../components/profile/ProfileFavorite';
+import CartReceipt from '../components/cart/CartReceipt';
 import PurchaseCard from '../components/cart/PurchaseCard';
 import CartReview from '../components/cart/CartReview';
 
@@ -53,7 +53,11 @@ export default function Cart() {
                 <TabList onChange={handleChange} aria-label="lab tabs">
                   <Tab disabled={tabValue !== '1'} label="Shipping" value="1" />
                   <Tab disabled={tabValue !== '2'} label="Review" value="2" />
-                  <Tab disabled={tabValue !== '3'} label="Payment" value="3" />
+                  <Tab
+                    disabled={tabValue !== '3'}
+                    label="Order Receipt"
+                    value="3"
+                  />
                 </TabList>
               </Box>
 
@@ -72,7 +76,10 @@ export default function Cart() {
                   />
                 </TabPanel>
                 <TabPanel value="3">
-                  <ProfileFavorite />
+                  <CartReceipt
+                    setTabValue={setTabValue}
+                    formValues={formValues}
+                  />
                 </TabPanel>
               </Box>
             </TabContext>

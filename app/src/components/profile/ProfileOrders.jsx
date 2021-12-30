@@ -1,73 +1,54 @@
-/* eslint-disable no-nested-ternary */
-import React, { useEffect } from 'react';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserOrderList } from '../../actions/index';
-import Loader from '../Loader';
-import Message from '../Message';
-import { AccountUserOrdersCard } from './ProfileOrdersCard';
+import * as React from 'react';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 
-export default function SideFilter() {
-  const dispatch = useDispatch();
-  // const [expanded, setExpanded] = useState(false);
+function createData(name, order, seller, buyer, price) {
+  return { name, order, seller, buyer, price };
+}
 
-  const myOrders = useSelector((state) => state.myOrders);
-  const { theMyOrders, loading, error } = myOrders;
+const rows = [
+  createData('0x13abf52467623e6bbf61b164a25307db02ca2505', 159, 6.0, 24, 4.0),
+  createData('0x13abf52467623e6bbf61b164a25307db02ca2505', 237, 9.0, 37, 4.3),
+  createData('0x13abf52467623e6bbf61b164a25307db02ca2505', 262, 16.0, 24, 6.0),
+  createData('0x13abf52467623e6bbf61b164a25307db02ca2505', 305, 3.7, 67, 4.3),
+  createData('0x13abf52467623e6bbf61b164a25307db02ca2505', 356, 16.0, 49, 3.9),
+];
 
-  useEffect(() => {
-    if (!theMyOrders || !theMyOrders[0] || loading) {
-      dispatch(fetchUserOrderList());
-    }
-    return () => {
-      // dispatch(cleanMyOrders());
-    };
-  }, [dispatch, loading, theMyOrders]);
-
-  const renderElement = () => (
-    <>
-      {!theMyOrders || !theMyOrders.map ? (
-        <Loader />
-      ) : (
-        <div>
-          {theMyOrders.map((order) => (
-            <div key={order._id}>
-              <Accordion>
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  aria-controls="panel-bh-content"
-                  id="panel-bh-header"
-                >
-                  <Typography sx={{ width: '33%', flexShrink: 0 }}>
-                    {`تاریخ ثبت: ${order.created_at} `}
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <AccountUserOrdersCard order={order} />
-                </AccordionDetails>
-              </Accordion>
-            </div>
-          ))}
-        </div>
-      )}
-    </>
-  );
+export default function DenseTable() {
   return (
-    <>
-      {!loading && (theMyOrders === undefined || !theMyOrders[0]) ? (
-        <Message variant="outlined" severity="info">
-          شما هنوز خریدی انچام ندادید
-        </Message>
-      ) : error ? (
-        <Message variant="outlined" severity="error">
-          {error}
-        </Message>
-      ) : (
-        renderElement()
-      )}
-    </>
+    <TableContainer component={Paper}>
+      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+        <TableHead>
+          <TableRow>
+            <TableCell>Transaction</TableCell>
+            <TableCell align="right">Order</TableCell>
+            <TableCell align="right">Seller</TableCell>
+            <TableCell align="right">Buyer</TableCell>
+            <TableCell align="right">Price</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow
+              key={row.name}
+              sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+            >
+              <TableCell component="th" scope="row">
+                {row.name}
+              </TableCell>
+              <TableCell align="right">{row.order}</TableCell>
+              <TableCell align="right">{row.seller}</TableCell>
+              <TableCell align="right">{row.buyer}</TableCell>
+              <TableCell align="right">{row.price}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 }

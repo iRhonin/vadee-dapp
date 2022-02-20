@@ -1,7 +1,7 @@
 /* eslint-disable no-nested-ternary */
 import { ethers } from 'ethers';
 import artworksBase, { gecko } from '../apis/artworksBase';
-import MarketPlace from '../build/contracts/artifacts/contracts/MarketPlace.sol/MarketPlace.json';
+import MarketPlace from '../contracts/MarketPlace.sol/MarketPlace.json';
 import {
   DEPLOY_MARKET_PLACE_FAIL,
   DEPLOY_MARKET_PLACE_REQUEST,

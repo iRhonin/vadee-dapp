@@ -14,13 +14,12 @@ import {
   SIGN_MY_ITEM_REQUEST,
   SIGN_MY_ITEM_SUCCESS,
 } from '../constants/lazyFactoryConstants';
-import artworksBase from '../apis/artworksBase';
-import { Voucher } from '../voucher';
-import LazyFactory from '../build/contracts/artifacts/contracts/LazyFactory.sol/LazyFactory.json';
+
+import Voucher from '../voucher';
+import LazyFactory from '../contracts/LazyFactory.sol/LazyFactory.json';
 import { updateArtwork } from './artworkAction';
 import { updateArtistGallery } from './artistAction';
 import { connectMetaMaskWallet, validateAddress } from '../wallet';
-import { weiToEth } from '../converter';
 
 const decimalPlaces = 2;
 

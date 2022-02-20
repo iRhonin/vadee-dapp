@@ -72,6 +72,6 @@ class Voucher {
   }
 }
 
-module.exports = {
+export default {
   Voucher,
 };
